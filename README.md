@@ -1,5 +1,7 @@
 # Valentine's Day Interactive Page
 
+> ***Because even the smallest of efforts matter.***
+
 A fun, interactive Valentine's Day page where the "Yes" button grows bigger every time they click "No" — with falling hearts, cute GIFs, music, and playful toast messages. Built with pure HTML, CSS, and JavaScript.
 
 
@@ -16,7 +18,7 @@ You've got two options — pick whatever works for you.
 Want your own version you can customize? Follow these steps:
 
 ### 1. Fork the repo
--fork it for yourself so you can do all the changes for yourself without affecting mine!
+-fork it for yourself so you can do all the changes
 
 #### 2. Enable GitHub Pages/ Host on vercel
 - In your forked repo, directly host it via github pages, or host it for free on vercel
@@ -30,33 +32,10 @@ Want your own version you can customize? Follow these steps:
 
 ---
 
-### Option 3: Vibe Code Your Own From Scratch
+### Option 2: Vibe Code Your Own From Scratch
 
-Want something completely unique? Use AI to build it.
+- Want something completely unique? Use AI to build it. Do anything that suits the purpose well, something that ignites a spark between the two of you!!.
 
-#### 1. Open Antigravity
-- Google **"anti gravity google"** or go to [antigravity.dev](https://www.antigravity.dev)
-- It has **Sonnet 4.6** built right in — no need to go anywhere else
-
-#### 2. Describe What You Want
-- Tell it exactly what you're imagining. Some ideas:
-  - Falling hearts animation with a love letter reveal
-  - Interactive story where they choose their adventure
-  - A countdown to Valentine's Day with daily messages
-  - A quiz about your relationship
-  - Whatever your heart desires — literally
-
-#### 3. Get the Code
-- Antigravity will generate the full HTML, CSS, and JavaScript for you
-- Copy the code into files on your computer
-
-#### 4. Deploy It
-- Create a new GitHub repository
-- Push your code to it
-- Enable GitHub Pages the same way as **Option 2** (Settings → Pages → Deploy from branch → main → root → Save)
-- Your custom creation goes live in ~2 minutes
-
----
 
 ## Project Structure
 
