@@ -5,7 +5,7 @@ A fun, interactive Valentine's Day page where the "Yes" button grows bigger ever
 
 ---
 
-## Want to Use This to Impress Your GF/Wife?
+## Want to Use This to Impress Your Girlfriend?
 
 You've got two options — pick whatever works for you.
 
@@ -15,21 +15,11 @@ You've got two options — pick whatever works for you.
 
 Want your own version you can customize? Follow these steps:
 
+### 1. Fork the repo
+-fork it for yourself so you can do all the changes for yourself without affecting mine!
 
-#### 2. Enable GitHub Pages
-- In your forked repo, go to **Settings** (the gear icon tab)
-- In the left sidebar, click **Pages**
-- Under **Source**, select **"Deploy from a branch"**
-- Under **Branch**, select **`main`** and **`/ (root)`**
-- Click **Save**
-
-#### 3. Wait ~2 Minutes
-- GitHub will build and deploy your site
-- Your site will be live at:
-  ```
-  https://yourusername.github.io/v-day
-  ```
-  (Replace `yourusername` with your actual GitHub username)
+#### 2. Enable GitHub Pages/ Host on vercel
+- In your forked repo, directly host it via github pages, or host it for free on vercel
 
 #### 4. Personalize It
 - Edit `index.html` to change the question, title, or GIF
@@ -37,8 +27,6 @@ Want your own version you can customize? Follow these steps:
 - Edit `script.js` to tweak the toast messages, button behavior, or GIF changes
 - Edit `style.css` to change colors, fonts, or animations
 - Swap out the music file in the `music/` folder with your own song
-
-> **Tip:** You can edit files directly on GitHub by clicking on a file and hitting the pencil (edit) icon. No need to clone anything locally if you just want quick changes.
 
 ---
 
