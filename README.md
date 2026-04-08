@@ -18,7 +18,7 @@ You've got two options — pick whatever works for you.
 Want your own version you can customize? Follow these steps:
 
 ### 1. Fork the repo
--fork it for yourself so you can do all the changes
+- fork it for yourself so you can do all the changes
 
 #### 2. Enable GitHub Pages/ Host on vercel
 - In your forked repo, directly host it via github pages, or host it for free on vercel
