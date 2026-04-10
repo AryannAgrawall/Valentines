@@ -6,6 +6,7 @@ window.addEventListener('load', () => {
     // Autoplay music (works since user clicked Yes to get here)
     const music = document.getElementById('bg-music')
     music.volume = 0.3
+    music.currentTime = 67; // Jump exactly to 1:07 for the grand finale!
     music.play().catch(() => {})
     musicPlaying = true
     document.getElementById('music-toggle').textContent = '🔊'
@@ -60,4 +61,21 @@ function toggleMusic() {
         musicPlaying = true
         document.getElementById('music-toggle').textContent = '🔊'
     }
+}
+
+function selectFood(choice) {
+    const menu = document.getElementById('options-menu');
+    const msg = document.getElementById('final-msg');
+    
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#00e676', '#ff007f']
+    });
+
+    menu.style.display = 'none';
+    msg.innerHTML = `Awesome! Get ready for <strong>${choice}</strong>. Can't wait! ❤️`;
+    msg.style.color = '#00e676';
+    msg.style.textShadow = '0 0 10px rgba(0, 230, 118, 0.5)';
 }

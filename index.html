@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Will you be my Valentine? 💕</title>
+    <title>Can I take you out? 🥺</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="surprise-overlay">
+        <h2>I have a question for you...</h2>
+        <button id="open-surprise-btn" onclick="openSurprise()"><span>Open me! 💌</span></button>
+    </div>
+
     <div class="hearts-bg"></div>
 
     <div class="container">
-        <h1>Will you be my Valentine? 💕</h1>
+        <h1>I really like you. Can I take you out on a date? 🥺</h1>
 
         <div class="gif-container">
             <img id="cat-gif" src="https://media.tenor.com/EBV7OT7ACfwAAAAj/u-u-qua-qua-u-quaa.gif" alt="cute character">
@@ -26,7 +31,7 @@
     </div>
 
     <audio id="bg-music" loop autoplay muted>
-        <source src="music/beabadoobee - Glue Song (Lyrics).mp3" type="audio/mpeg">
+        <source src="music/this_love taylor swift.mp3" type="audio/mpeg">
     </audio>
 
     <button id="music-toggle" onclick="toggleMusic()" title="Toggle music">🔊</button>

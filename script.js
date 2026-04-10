@@ -11,20 +11,19 @@ const gifStages = [
 
 const noMessages = [
     "No",
-    "Are you positive? 🤔",
-    "Pookie please... 🥺",
-    "If you say no, I will be really sad...",
-    "I will be very sad... 😢",
-    "Please??? 💔",
-    "Don't do this to me...",
-    "Last chance! 😭",
-    "You can't catch me anyway 😜"
+    "Are you sure? 🥺",
+    "I'll let you win all the arguments! 🫣",
+    "I'll buy u hairpins! 🌸",
+    "Come on, at least for coffee? ☕",
+    "Please? 🥺",
+    "I'll take aesthetic photos of you! 📸",
+    "You can't escape me anyway 😜"
 ]
 
 const yesTeasePokes = [
     "try saying no first... I bet you want to know what happens 😏",
     "go on, hit no... just once 👀",
-    "you're missing out 😈",
+    "trust me, you're missing out 😈",
     "click no, I dare you 😏"
 ]
 
@@ -39,18 +38,20 @@ const yesBtn = document.getElementById('yes-btn')
 const noBtn = document.getElementById('no-btn')
 const music = document.getElementById('bg-music')
 
-// Autoplay: audio starts muted (bypasses browser policy), unmute immediately
-music.muted = true
-music.volume = 0.3
-music.play().then(() => {
-    music.muted = false
-}).catch(() => {
-    // Fallback: unmute on first interaction
-    document.addEventListener('click', () => {
-        music.muted = false
-        music.play().catch(() => {})
-    }, { once: true })
-})
+music.volume = 0.3;
+
+function openSurprise() {
+    // Hide the overlay
+    const overlay = document.getElementById('surprise-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+    }
+
+    // Start the music exactly when the user clicks!
+    music.currentTime = 26;
+    music.muted = false;
+    music.play().catch(() => { });
+}
 
 function toggleMusic() {
     if (musicPlaying) {
@@ -129,6 +130,14 @@ function enableRunaway() {
 }
 
 function runAway() {
+    // Grow YES button every time they try to hover NO!
+    const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
+    yesBtn.style.fontSize = `${currentSize * 1.15}px`;
+
+    const padY = parseFloat(window.getComputedStyle(yesBtn).paddingTop) || 18;
+    const padX = parseFloat(window.getComputedStyle(yesBtn).paddingLeft) || 45;
+    yesBtn.style.padding = `${Math.min(padY + 4, 80)}px ${Math.min(padX + 8, 200)}px`;
+
     const margin = 20
     const btnW = noBtn.offsetWidth
     const btnH = noBtn.offsetHeight
