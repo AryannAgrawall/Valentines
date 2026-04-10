@@ -7,7 +7,7 @@ A fun, interactive Valentine's Day page where the "Yes" button grows bigger ever
 
 ---
 
-## Want to Use This to Impress the Girl u like?
+## Want to Use This to Impress the Girl you like?
 
 You've got two options — pick whatever works for you.
 
