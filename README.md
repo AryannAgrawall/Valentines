@@ -7,7 +7,7 @@ A fun, interactive Valentine's Day page where the "Yes" button grows bigger ever
 
 ---
 
-## Want to Use This to Impress Your Girlfriend?
+## Want to Use This to Impress the Girl u like?
 
 You've got two options — pick whatever works for you.
 
@@ -24,11 +24,7 @@ Want your own version you can customize? Follow these steps:
 - In your forked repo, directly host it via github pages, or host it for free on vercel
 
 #### 3. Personalize It
-- Edit `index.html` to change the question, title, or GIF
-- Edit `yes.html` to change the celebration page
-- Edit `script.js` to tweak the toast messages, button behavior, or GIF changes
-- Edit `style.css` to change colors, fonts, or animations
-- Swap out the music file in the `music/` folder with your own song
+- Edit the pages that fitsy your context very well with her, to make sure she gets the familiarity and is connected to you.
 
 ---
 
