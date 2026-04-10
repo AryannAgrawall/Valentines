@@ -23,7 +23,7 @@ Want your own version you can customize? Follow these steps:
 #### 2. Enable GitHub Pages/ Host on vercel
 - In your forked repo, directly host it via github pages, or host it for free on vercel
 
-#### 4. Personalize It
+#### 3. Personalize It
 - Edit `index.html` to change the question, title, or GIF
 - Edit `yes.html` to change the celebration page
 - Edit `script.js` to tweak the toast messages, button behavior, or GIF changes
