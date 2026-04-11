@@ -94,10 +94,14 @@ function handleNoClick() {
 
     // Grow the Yes button bigger each time
     const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize)
-    yesBtn.style.fontSize = `${currentSize * 1.35}px`
-    const padY = Math.min(18 + noClickCount * 5, 60)
-    const padX = Math.min(45 + noClickCount * 10, 120)
-    yesBtn.style.padding = `${padY}px ${padX}px`
+    const sizeMultiplier = window.innerWidth < 600 ? 1.15 : 1.35;
+    const maxFontSize = window.innerWidth < 600 ? 60 : 100;
+    yesBtn.style.fontSize = `${Math.min(currentSize * sizeMultiplier, maxFontSize)}px`;
+    const maxPadYNo = window.innerWidth < 600 ? 30 : 60;
+    const maxPadXNo = window.innerWidth < 600 ? 60 : 120;
+    const padY = Math.min(18 + noClickCount * 5, maxPadYNo);
+    const padX = Math.min(45 + noClickCount * 10, maxPadXNo);
+    yesBtn.style.padding = `${padY}px ${padX}px`;
 
     // Shrink No button to contrast
     if (noClickCount >= 2) {
@@ -132,11 +136,15 @@ function enableRunaway() {
 function runAway() {
     // Grow YES button every time they try to hover NO!
     const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
-    yesBtn.style.fontSize = `${currentSize * 1.15}px`;
+    const sizeMultiplier = window.innerWidth < 600 ? 1.05 : 1.15;
+    const maxFontSize = window.innerWidth < 600 ? 70 : 120;
+    yesBtn.style.fontSize = `${Math.min(currentSize * sizeMultiplier, maxFontSize)}px`;
 
     const padY = parseFloat(window.getComputedStyle(yesBtn).paddingTop) || 18;
     const padX = parseFloat(window.getComputedStyle(yesBtn).paddingLeft) || 45;
-    yesBtn.style.padding = `${Math.min(padY + 4, 80)}px ${Math.min(padX + 8, 200)}px`;
+    const maxPadYRun = window.innerWidth < 600 ? 40 : 80;
+    const maxPadXRun = window.innerWidth < 600 ? 70 : 200;
+    yesBtn.style.padding = `${Math.min(padY + 4, maxPadYRun)}px ${Math.min(padX + 8, maxPadXRun)}px`;
 
     const margin = 20
     const btnW = noBtn.offsetWidth
@@ -148,7 +156,51 @@ function runAway() {
     const randomY = Math.random() * maxY + margin / 2
 
     noBtn.style.position = 'fixed'
-    noBtn.style.left = `${randomX}px`
-    noBtn.style.top = `${randomY}px`
-    noBtn.style.zIndex = '50'
+    noBtn.style.left = `${randomX}px`;
+    noBtn.style.top = `${randomY}px`;
+    noBtn.style.zIndex = '50';
 }
+
+// --- ANTI-CHEAT (ZOOM PREVENTION) ---
+
+// Prevent pinch-to-zoom on mobile
+document.addEventListener('touchstart', function (e) {
+    if (e.touches.length > 1) {
+        e.preventDefault();
+        showTeaseMessage("Uh-uh-uh, u can't cheat here! 😉");
+    }
+}, { passive: false });
+
+// Prevent pinch-to-zoom movement
+document.addEventListener('touchmove', function (e) {
+    if (e.touches.length > 1) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+// Prevent double-tap to zoom on mobile
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (e) {
+    let now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+        showTeaseMessage("Uh-uh-uh, u can't cheat here! 😉");
+    }
+    lastTouchEnd = now;
+}, { passive: false });
+
+// Prevent Ctrl + Scroll zoom on desktop
+document.addEventListener('wheel', function (e) {
+    if (e.ctrlKey) {
+        e.preventDefault();
+        showTeaseMessage("Uh-uh-uh, u can't cheat here! 😉");
+    }
+}, { passive: false });
+
+// Prevent Ctrl + +/- keys zoom on desktop
+document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '+' || e.key === '0')) {
+        e.preventDefault();
+        showTeaseMessage("Uh-uh-uh, u can't cheat here! 😉");
+    }
+}, { passive: false });

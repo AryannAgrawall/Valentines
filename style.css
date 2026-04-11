@@ -8,6 +8,7 @@ body {
     background-color: #0b0c10;
     font-family: 'Nunito', sans-serif;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -330,4 +331,52 @@ h1 {
 #open-surprise-btn:hover {
     transform: scale(1.08) translateY(-5px);
     box-shadow: 0 10px 30px rgba(255, 0, 127, 0.6);
+}
+
+/* Responsive adjustments for mobile devices */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .yes-container h1.yes-title {
+        font-size: 2.2rem;
+    }
+    
+    #surprise-overlay h2 {
+        font-size: 1.8rem;
+    }
+    
+    #yes-btn {
+        font-size: 1.3rem;
+        padding: 14px 30px;
+    }
+    
+    #no-btn {
+        font-size: 1rem;
+        padding: 12px 24px;
+    }
+    
+    #cat-gif {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .yes-container #cat-gif {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .food-btn {
+        font-size: 1rem;
+        padding: 10px 18px;
+    }
+    
+    #open-surprise-btn {
+        transform: scale(0.85);
+    }
+    
+    #open-surprise-btn:hover {
+        transform: scale(0.9) translateY(-5px);
+    }
 }
