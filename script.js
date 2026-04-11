@@ -138,13 +138,20 @@ function runAway() {
     const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
     const sizeMultiplier = window.innerWidth < 600 ? 1.05 : 1.15;
     const maxFontSize = window.innerWidth < 600 ? 70 : 120;
-    yesBtn.style.fontSize = `${Math.min(currentSize * sizeMultiplier, maxFontSize)}px`;
+    const newSize = Math.min(currentSize * sizeMultiplier, maxFontSize);
+    yesBtn.style.fontSize = `${newSize}px`;
 
     const padY = parseFloat(window.getComputedStyle(yesBtn).paddingTop) || 18;
     const padX = parseFloat(window.getComputedStyle(yesBtn).paddingLeft) || 45;
     const maxPadYRun = window.innerWidth < 600 ? 40 : 80;
     const maxPadXRun = window.innerWidth < 600 ? 70 : 200;
-    yesBtn.style.padding = `${Math.min(padY + 4, maxPadYRun)}px ${Math.min(padX + 8, maxPadXRun)}px`;
+    const newPadY = Math.min(padY + 4, maxPadYRun);
+    const newPadX = Math.min(padX + 8, maxPadXRun);
+    yesBtn.style.padding = `${newPadY}px ${newPadX}px`;
+
+    if (newSize >= maxFontSize && newPadY >= maxPadYRun && newPadX >= maxPadXRun) {
+        yesBtn.classList.add('yes-glow-active');
+    }
 
     const margin = 20
     const btnW = noBtn.offsetWidth
@@ -154,7 +161,6 @@ function runAway() {
 
     const randomX = Math.random() * maxX + margin / 2
     const randomY = Math.random() * maxY + margin / 2
-
     noBtn.style.position = 'fixed'
     noBtn.style.left = `${randomX}px`;
     noBtn.style.top = `${randomY}px`;

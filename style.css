@@ -108,6 +108,8 @@ h1 {
     transition: transform 0.15s, box-shadow 0.15s;
     box-shadow: 0 6px 20px rgba(0, 230, 118, 0.45), 0 0 15px rgba(0, 230, 118, 0.6);
     letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
 }
 
 #yes-btn:hover {
@@ -117,6 +119,42 @@ h1 {
 
 #yes-btn:active {
     transform: scale(0.98);
+}
+
+.yes-glow-active {
+    animation: yesPulseGlow 1.2s infinite alternate !important;
+    border: 2px solid rgba(255, 255, 255, 0.35) !important;
+    color: #000 !important;
+    z-index: 100;
+}
+
+@keyframes yesPulseGlow {
+    0% {
+        box-shadow: 0 0 20px #00e676, 0 0 40px #00c853;
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 40px #00e676, 0 0 80px #00c853, 0 0 120px #00e676;
+        transform: scale(1.05);
+    }
+}
+
+.yes-glow-active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    animation: buttonShine 2s infinite;
+}
+
+@keyframes buttonShine {
+    0% { left: -150%; }
+    50% { left: 200%; }
+    100% { left: 200%; }
 }
 
 #no-btn {
