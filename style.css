@@ -340,7 +340,12 @@ h1 {
     }
     
     .yes-container h1.yes-title {
-        font-size: 2.2rem;
+        font-size: 1.8rem;
+    }
+
+    .yes-message {
+        font-size: 1.15rem;
+        margin-top: 15px;
     }
     
     #surprise-overlay h2 {
@@ -362,14 +367,28 @@ h1 {
         height: 160px;
     }
     
+    .container {
+        padding: 20px 15px;
+    }
+
     .yes-container #cat-gif {
-        width: 200px;
-        height: 200px;
+        width: 150px;
+        height: 150px;
+        margin: 10px auto;
     }
     
+    .options-menu {
+        gap: 12px;
+        margin-top: 15px;
+        flex-direction: column;
+    }
+
     .food-btn {
-        font-size: 1rem;
-        padding: 10px 18px;
+        font-size: 0.95rem;
+        padding: 12px 16px;
+        width: 100%;
+        max-width: 260px;
+        margin: 0 auto;
     }
     
     #open-surprise-btn {
