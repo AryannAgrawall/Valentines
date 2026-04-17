@@ -24,7 +24,7 @@ Want your own version you can customize? Follow these steps:
 - In your forked repo, directly host it via github pages, or host it for free on vercel
 
 #### 3. Personalize It
-- Edit the pages that fitsy your context very well with her, to make sure she gets the familiarity and is connected to you.
+- Edit the pages that fits your context very well with her, to make sure she gets the familiarity and is connected to you.
 
 ---
 
