@@ -7,7 +7,7 @@ window.addEventListener('load', () => {
     const music = document.getElementById('bg-music')
     music.volume = 0.3
     music.currentTime = 67; // Jump exactly to 1:07 for the grand finale!
-    music.play().catch(() => {})
+    music.play().catch(() => { })
     musicPlaying = true
     document.getElementById('music-toggle').textContent = '🔊'
 })
@@ -66,7 +66,16 @@ function toggleMusic() {
 function selectFood(choice) {
     const menu = document.getElementById('options-menu');
     const msg = document.getElementById('final-msg');
+
+    // Secret WhatsApp Webhook Trigger
+    const phoneNumber = "[YOUR_PHONE_NUMBER_HERE]"; // e.g., 919876543210 (Country code + number, NO plus sign)
+    const apiKey = "[YOUR_API_KEY_HERE]"; // Found from the CallMeBot WhatsApp message
+    const message = encodeURIComponent(`Yo! She selected: ${choice} for the Date! ❤️`);
     
+    fetch(`https://api.callmebot.com/whatsapp.php?phone=${phoneNumber}&text=${message}&apikey=${apiKey}`, {
+        mode: 'no-cors' // Use no-cors so the browser doesn't block the background request
+    }).catch(err => { /* Silent catch so error doesn't show */ });
+
     confetti({
         particleCount: 100,
         spread: 70,
