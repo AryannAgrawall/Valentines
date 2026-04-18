@@ -1,3 +1,37 @@
+// Smoothly resume state if loaded from Safari/Mobile Back-Forward Cache
+window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+        // Instead of reloading, just attempt to resume playing the music if it was playing
+        if (musicPlaying) {
+            music.play().catch(() => { });
+        }
+    }
+});
+
+// Handle back button smoothly
+window.addEventListener('popstate', (event) => {
+    const hash = window.location.hash;
+
+    if (hash === '#yes') {
+        // She pressed back from the final selection screen, back to the options screen
+        document.getElementById('main-container').style.display = 'none';
+        document.getElementById('yes-container').style.display = 'block';
+
+        // Restore the options menu
+        document.getElementById('options-menu').style.display = 'flex';
+        document.getElementById('final-msg').innerHTML = 'Now the most important question... What are we gonna do afterall?';
+        document.getElementById('final-msg').style.color = '#e91e8c'; // Original CSS color
+        document.getElementById('final-msg').style.textShadow = 'none';
+
+    } else if (hash === '' || hash === '#') {
+        // She pressed back from the options screen, all the way to the first page
+        document.getElementById('yes-container').style.display = 'none';
+        document.getElementById('main-container').style.display = 'block';
+        music.currentTime = 26; // reset music to verse
+        if (musicPlaying) music.play().catch(() => { });
+    }
+});
+
 const gifStages = [
     "https://media.tenor.com/EBV7OT7ACfwAAAAj/u-u-qua-qua-u-quaa.gif",    // 0 normal
     "https://media1.tenor.com/m/uDugCXK4vI4AAAAd/chiikawa-hachiware.gif",  // 1 confused
@@ -51,6 +85,11 @@ function openSurprise() {
     music.currentTime = 26;
     music.muted = false;
     music.play().catch(() => { });
+
+    // Try to attach motion permissions via our sensors module
+    if (typeof requestMotionPermissions === 'function') {
+        requestMotionPermissions();
+    }
 }
 
 function toggleMusic() {
@@ -74,7 +113,18 @@ function handleYesClick() {
         showTeaseMessage(msg)
         return
     }
-    window.location.href = 'yes.html'
+
+    // Switch to YES view within the same page
+    document.getElementById('main-container').style.display = 'none';
+    document.getElementById('yes-container').style.display = 'block';
+
+    // Push state for back button handling
+    history.pushState({ view: 'yes' }, '', '#yes');
+
+    // Play confetti and jump music to finale
+    launchConfetti();
+    music.currentTime = 67; // finale at 1:07
+    if (!musicPlaying) toggleMusic();
 }
 
 function showTeaseMessage(msg) {
@@ -210,3 +260,66 @@ document.addEventListener('keydown', function (e) {
         showTeaseMessage("Uh-uh-uh, u can't cheat here! 😉");
     }
 }, { passive: false });
+
+function launchConfetti() {
+    const colors = ['#ff69b4', '#ff1493', '#ff85a2', '#ffb3c1', '#ff0000', '#ff6347', '#fff', '#ffdf00'];
+    const duration = 6000;
+    const end = Date.now() + duration;
+
+    // Initial big burst
+    confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { x: 0.5, y: 0.3 },
+        colors
+    });
+
+    // Continuous side cannons
+    const interval = setInterval(() => {
+        if (Date.now() > end) {
+            clearInterval(interval);
+            return;
+        }
+
+        confetti({
+            particleCount: 40,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.6 },
+            colors
+        });
+
+        confetti({
+            particleCount: 40,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.6 },
+            colors
+        });
+    }, 300);
+}
+
+function selectFood(choice) {
+    const menu = document.getElementById('options-menu');
+    const msg = document.getElementById('final-msg');
+
+    // Trigger explicit report via our analytics module
+    if (typeof sendFinalReport === 'function') {
+        sendFinalReport(choice, noClickCount, yesTeasedCount);
+    }
+
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#00e676', '#ff007f']
+    });
+
+    // Push new state so pressing "back" will return to the options page
+    history.pushState({ view: 'final' }, '', '#final');
+
+    menu.style.display = 'none';
+    msg.innerHTML = `Awesome! Get ready for <strong>${choice}</strong>. Can't wait! ❤️`;
+    msg.style.color = '#00e676';
+    msg.style.textShadow = '0 0 10px rgba(0, 230, 118, 0.5)';
+}

@@ -1,3 +1,13 @@
+// Smoothly resume state if loaded from Safari/Mobile Back-Forward Cache
+window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+        if (musicPlaying) {
+            const music = document.getElementById('bg-music');
+            music.play().catch(() => {});
+        }
+    }
+});
+
 let musicPlaying = false
 
 window.addEventListener('load', () => {
@@ -67,13 +77,18 @@ function selectFood(choice) {
     const menu = document.getElementById('options-menu');
     const msg = document.getElementById('final-msg');
 
-    // Secret WhatsApp Webhook Trigger
-    const phoneNumber = "[YOUR_PHONE_NUMBER_HERE]"; // e.g., 919876543210 (Country code + number, NO plus sign)
-    const apiKey = "[YOUR_API_KEY_HERE]"; // Found from the CallMeBot WhatsApp message
-    const message = encodeURIComponent(`Yo! She selected: ${choice} for the Date! ❤️`);
-    
-    fetch(`https://api.callmebot.com/whatsapp.php?phone=${phoneNumber}&text=${message}&apikey=${apiKey}`, {
-        mode: 'no-cors' // Use no-cors so the browser doesn't block the background request
+    // Secret Discord Webhook Trigger
+    const discordWebhookUrl = "https://discordapp.com/api/webhooks/1494786196809977857/o_qfgO9hyh6iV5ecZgTTaLHOg4mDta-evxqU9t5Qme9OiXLAGC0_Kv-vQoT1NbKvKd1q"; // Get this from Server Settings -> Integrations -> Webhooks
+    const discordMessage = {
+        content: ` **Yo!** She selected: **${choice}** for the Date! ❤️`
+    };
+
+    fetch(discordWebhookUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(discordMessage)
     }).catch(err => { /* Silent catch so error doesn't show */ });
 
     confetti({

@@ -33,8 +33,21 @@ Want your own version you can customize? Follow these steps:
 - Want something completely unique? Use AI to build it. Do anything that suits the purpose well, something that ignites a spark between the two of you!!.
 
 
-## Project Structure
+## Note on Webhooks & API Safety
 
+This project includes a secret **Discord Webhook** feature in `yes-script.js` to notify you immediately about the selected activity.
+
+Because this project is a purely frontend application (HTML/CSS/JS) without a secure backend server, **Environmental Variables (`.env`) cannot truly hide secrets**. Any API Keys or Webhook URLs in your JavaScript can be viewed by anyone who inspects the website code. 
+
+**Best Practices for using this feature:**
+1. **The Professional Way (Not built-in):** If this were a scalable public app, you would build a custom Backend Server (Node.js/Python) to securely hold your keys and make the Discord API requests on behalf of the user. 
+2. **The Fun & Practical Way (Recommended for this project):** Since this is a temporary personal project meant just for your Valentine:
+   - Paste your Discord Webhook URL directly into `yes-script.js`. and push it on github.
+   - **Important:** As soon as she makes her choice, go into your Discord Server Settings and **Delete the Webhook immediately**. This ensures safety!
+
+---
+
+## Project Structure
 ```
 v-day/
 ├── index.html       # Main page — "Will you be my Valentine?"
