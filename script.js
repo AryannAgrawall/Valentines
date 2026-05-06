@@ -67,12 +67,73 @@ let noClickCount = 0
 let runawayEnabled = false
 let musicPlaying = true
 
-const catGif = document.getElementById('cat-gif')
-const yesBtn = document.getElementById('yes-btn')
-const noBtn = document.getElementById('no-btn')
-const music = document.getElementById('bg-music')
+const catGif = document.getElementById('cat-gif');
+catGif.addEventListener('contextmenu', e => e.preventDefault());
+// Prevent right‑click download on any media element (audio, video, img)
+document.addEventListener('contextmenu', e => {
+  if (e.target.matches('audio, video, img')) {
+    e.preventDefault();
+  }
+});
+const yesBtn = document.getElementById('yes-btn');
+const noBtn = document.getElementById('no-btn');
+const music = document.getElementById('bg-music');
 
 music.volume = 0.3;
+
+// Cache for fetched audio blobs
+const audioCache = new Map();
+
+async function loadAudio(url) {
+  if (audioCache.has(url)) return audioCache.get(url);
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    const objUrl = URL.createObjectURL(blob);
+    audioCache.set(url, objUrl);
+    return objUrl;
+  } catch (e) {
+    console.error('Failed to load audio', url, e);
+    return url; // fallback to original URL
+  }
+}
+
+// Load audio (and initial GIF) on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', async () => {
+  const musicUrl = await loadAudio('music/this_love taylor swift.mp3');
+  music.src = musicUrl;
+  music.addEventListener('contextmenu', e => e.preventDefault());
+  if (gifStages.length > 0) {
+    const firstUrl = await loadGif(gifStages[0]);
+    catGif.src = firstUrl;
+  }
+});
+
+// Cache for fetched audio blobs
+// Duplicate audio loader and init removed – single loadAudio implementation above handles fetching audio as a Blob URL.
+
+// Preserve music playback position when page is hidden or user switches tabs
+let savedMusicTime = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (!music.paused) {
+      savedMusicTime = music.currentTime;
+      music.pause();
+    }
+  } else {
+    if (musicPlaying) {
+      music.currentTime = savedMusicTime || 0;
+      music.play().catch(() => {});
+    }
+  }
+});
+// Stop music entirely when the user navigates away or closes the tab
+window.addEventListener('pagehide', () => {
+  if (!music.paused) {
+    music.pause();
+  }
+  savedMusicTime = 0;
+});
 
 function openSurprise() {
     // Hide the overlay
@@ -81,10 +142,10 @@ function openSurprise() {
         overlay.classList.add('hidden');
     }
 
-    // Start the music exactly when the user clicks!
+    // Ensure background music is loaded (already set on DOMContentLoaded) and start at promised position
     music.currentTime = 26;
     music.muted = false;
-    music.play().catch(() => { });
+    music.play().catch(() => {});
 
     // Try to attach motion permissions via our sensors module
     if (typeof requestMotionPermissions === 'function') {
@@ -170,13 +231,41 @@ function handleNoClick() {
     }
 }
 
-function swapGif(src) {
-    catGif.style.opacity = '0'
-    setTimeout(() => {
-        catGif.src = src
-        catGif.style.opacity = '1'
-    }, 200)
+// --- Optimized GIF loading (network fetch + caching) ---
+const gifCache = new Map();
+
+async function loadGif(url) {
+  if (gifCache.has(url)) return gifCache.get(url);
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    const objUrl = URL.createObjectURL(blob);
+    gifCache.set(url, objUrl);
+    return objUrl;
+  } catch (e) {
+    console.error('Failed to load GIF', url, e);
+    return url; // fallback to original URL
+  }
 }
+
+// Set initial GIF on page load using the first stage URL
+document.addEventListener('DOMContentLoaded', async () => {
+  if (gifStages.length > 0) {
+    const firstUrl = await loadGif(gifStages[0]);
+    catGif.src = firstUrl;
+  }
+});
+
+// Updated swapGif to use async loading and caching
+async function swapGif(src) {
+  const gifUrl = await loadGif(src);
+  catGif.style.opacity = '0';
+  setTimeout(() => {
+    catGif.src = gifUrl;
+    catGif.style.opacity = '1';
+  }, 200);
+}
+
 
 function enableRunaway() {
     noBtn.addEventListener('mouseover', runAway)
