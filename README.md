@@ -1,63 +1,51 @@
-# Valentine's Day Interactive Page
+# Valentine's Day Interactive Experience 💌
 
 > ***Because even the smallest of efforts matter.***
 
-A fun, interactive Valentine's Day page where the "Yes" button grows bigger every time they click "No" — with falling hearts, cute GIFs, music, and playful toast messages. Built with pure HTML, CSS, and JavaScript.
-
-
----
-
-## Want to Use This to Impress the Girl you like?
-
-You've got two options — pick whatever works for you.
+This isn't just a webpage—it's a high-level interactive experience designed to ask that special someone out. It features a runaway "No" button, dynamic GIF transitions, custom music synchronization, and advanced behavioral analytics.
 
 ---
 
-### Option 1: Fork It and Make It Yours
+## What makes this special?
 
-Want your own version you can customize? Follow these steps:
-
-### 1. Fork the repo
-- fork it for yourself so you can do all the changes
-
-#### 2. Enable GitHub Pages/ Host on vercel
-- In your forked repo, directly host it via github pages, or host it for free on vercel
-
-#### 3. Personalize It
-- Edit the pages that fits your context very well with her, to make sure she gets the familiarity and is connected to you.
+- **Interactive Runaway Button:** A "No" button that grows more elusive and triggers size-scaling in the "Yes" button.
+- **Cinematic Experience:** Background music that transitions from a gentle verse to a grand finale when they say "Yes."
+- **Motion Sensor Support:** Built-in support for device sensors—if they shake the phone or jump, the site reacts!
+- **Behavioral Analytics:** Generates a "Report Card" based on how they interacted with the site (Decision speed, loyalty score, etc.).
+- **Anti-Cheat System:** Prevents users from zooming or using shortcuts to bypass the runaway button.
 
 ---
 
-### Option 2: Vibe Code Your Own From Scratch
+## Security & Privacy (The Pro Way)
 
-- Want something completely unique? Use AI to build it. Do anything that suits the purpose well, something that ignites a spark between the two of you!!.
+Unlike basic projects that expose secret links in the browser, this project is **Production-Ready and Secure**. 
+
+We use **Vercel Serverless Functions** (a backend-as-a-service) to handle Discord notifications. This means:
+1. **Server-Side Logic:** All the "behavioral analysis" happens on a secure server, not in the browser.
+2. **Spam Protection:** Since the webhook is hidden, it cannot be intercepted or spammed by anyone visiting the site.
+
+---
 
 
-## Note on Webhooks & API Safety
-
-This project includes a secret **Discord Webhook** feature in `yes-script.js` to notify you immediately about the selected activity.
-
-Because this project is a purely frontend application (HTML/CSS/JS) without a secure backend server, **Environmental Variables (`.env`) cannot truly hide secrets**. Any API Keys or Webhook URLs in your JavaScript can be viewed by anyone who inspects the website code. 
-
-**Best Practices for using this feature:**
-1. **The Professional Way (Not built-in):** If this were a scalable public app, you would build a custom Backend Server (Node.js/Python) to securely hold your keys and make the Discord API requests on behalf of the user. 
-2. **The Fun & Practical Way (Recommended for this project):** Since this is a temporary personal project meant just for your Valentine:
-   - Paste your Discord Webhook URL directly into `yes-script.js`. and push it on github.
-   - **Important:** As soon as she makes her choice, go into your Discord Server Settings and **Delete the Webhook immediately**. This ensures safety!
+## Personalize
+Edit the messages in `script.js` and `api/notify.js` to match your own jokes and memories with your Valentine.
 
 ---
 
 ## Project Structure
 ```
-v-day/
-├── index.html       # Main page — "Will you be my Valentine?"
-├── yes.html         # Celebration page after they say Yes
-├── script.js        # Main page logic (button growth, GIF swaps, toasts)
-├── yes-script.js    # Celebration page animations
-├── style.css        # All the styling and animations
-└── music/           # Background music
+Valentines/
+├── api/             # 🔒 Secure Backend (Serverless Functions)
+│   └── notify.js    # Handles Discord notifications securely
+├── index.html       # The main question page
+├── yes.html         # The celebration & date selection page
+├── analytics.js     # Communication with the backend
+├── script.js        # Main interaction logic & animations
+├── sensors.js       # Motion & gesture detection logic
+├── style.css        # Premium styling & glassmorphism
+└── music/           # Audio assets
 ```
 
 ---
 
-***Do whatever you want with it. Make someone smile.***
+***Make someone smile. Built with love and secure code.***
