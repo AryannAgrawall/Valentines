@@ -16,9 +16,9 @@ This isn't just a webpage—it's a high-level interactive experience designed to
 
 ---
 
-## Security & Privacy (The Pro Way)
+## Security & Privacy 
 
-Unlike basic projects that expose secret links in the browser, this project is **Production-Ready and Secure**. 
+Unlike basic projects, this one is **Production-Ready and Secure**. 
 
 We use **Vercel Serverless Functions** (a backend-as-a-service) to handle Discord notifications. This means:
 1. **Server-Side Logic:** All the "behavioral analysis" happens on a secure server, not in the browser.
@@ -35,7 +35,7 @@ Edit the messages in `script.js` and `api/notify.js` to match your own jokes and
 ## Project Structure
 ```
 Valentines/
-├── api/             # 🔒 Secure Backend (Serverless Functions)
+├── api/             # Secure Backend (Serverless Functions)
 │   └── notify.js    # Handles Discord notifications securely
 ├── index.html       # The main question page
 ├── yes.html         # The celebration & date selection page
