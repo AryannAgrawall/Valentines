@@ -13,6 +13,20 @@
     <script type="importmap">
         { "imports": { "three": "./vendor/three.module.js" } }
     </script>
+    <script>
+        // Decide the envelope mode BEFORE first paint so the flat envelope never
+        // flashes before the 3D scene. env-3d → dark candlelit placeholder while
+        // WebGL loads; env-flat → original flat envelope (reduced-motion/no WebGL).
+        (function () {
+            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var gl = false;
+            try {
+                var c = document.createElement('canvas');
+                gl = !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
+            } catch (e) {}
+            document.documentElement.classList.add((!reduce && gl) ? 'env-3d' : 'env-flat');
+        })();
+    </script>
 </head>
 
 <body>

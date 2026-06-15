@@ -531,16 +531,20 @@ h1 {
 }
 
 /* =========================================================
-   P4 — 3D envelope canvas. Hidden by default; only shown when
-   envelope3d.js confirms WebGL (and not reduced-motion) and adds
-   .webgl-active. In every fallback case the flat button below renders
-   exactly as before.
+   P4 — 3D envelope. The mode is chosen pre-paint by the inline detector in
+   <head>: html.env-3d (WebGL intended) or html.env-flat (reduced-motion / no
+   WebGL → the original flat envelope, unchanged). Deciding before first paint
+   is what prevents the flat-envelope flash.
    ========================================================= */
 #envelope-canvas {
     display: none;
 }
 
-#surprise-overlay.webgl-active #envelope-canvas {
+/* 3D mode — a dark candlelit placeholder from frame one. The canvas fades in
+   only once envelope3d.js has drawn the first frame and added .env-ready, so the
+   envelope emerges from candlelight rather than popping in or swapping a flat
+   placeholder. */
+html.env-3d #envelope-canvas {
     display: block;
     position: absolute;
     inset: 0;
@@ -548,17 +552,39 @@ h1 {
     height: 100%;
     z-index: 1;
     pointer-events: none; /* the full-area button handles input */
+    opacity: 0;
+    transition: opacity 0.55s var(--ease-out);
 }
 
-#surprise-overlay.webgl-active h2 {
-    position: relative;
-    z-index: 3;
-    pointer-events: none; /* decorative; the full-area button beneath takes input */
+html.env-3d #surprise-overlay.env-ready #envelope-canvas {
+    opacity: 1;
 }
 
-/* When 3D is active the button becomes a transparent, full-area, keyboard-
-   focusable hit target over the canvas — the 3D envelope is the affordance. */
-#surprise-overlay.webgl-active #open-surprise-btn {
+/* Warmer central pool so the pre-envelope state reads as intentional candlelight. */
+html.env-3d #surprise-overlay {
+    background-image:
+        radial-gradient(circle at 50% 47%, rgba(232, 180, 143, 0.14) 0%, transparent 55%),
+        radial-gradient(circle at 50% 45%, rgba(60, 40, 80, 0.55) 0%, transparent 70%);
+}
+
+/* The large heading is redundant with the sealed letter and the card beneath —
+   remove it from the composition but keep it for assistive tech. */
+html.env-3d #surprise-overlay h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Button becomes a transparent, full-area, keyboard-focusable hit target; the
+   3D envelope itself is the affordance. */
+html.env-3d #open-surprise-btn {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -570,18 +596,22 @@ h1 {
     z-index: 2;
 }
 
-#surprise-overlay.webgl-active #open-surprise-btn::before,
-#surprise-overlay.webgl-active #open-surprise-btn::after {
+html.env-3d #open-surprise-btn::before,
+html.env-3d #open-surprise-btn::after {
     display: none;
 }
 
-#surprise-overlay.webgl-active #open-surprise-btn:hover {
+html.env-3d #open-surprise-btn:hover {
     transform: none;
     box-shadow: none;
 }
 
-/* Keep an inviting hint pinned near the bottom instead of centered. */
-#surprise-overlay.webgl-active #open-surprise-btn span {
+html.env-3d #open-surprise-btn:focus-visible {
+    outline-offset: -6px;
+}
+
+/* Subtle invite hint, fading in together with the envelope. */
+html.env-3d #open-surprise-btn span {
     position: absolute;
     bottom: 9%;
     left: 50%;
@@ -589,10 +619,12 @@ h1 {
     background: rgba(11, 12, 16, 0.55);
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 0.55s var(--ease-out);
 }
 
-#surprise-overlay.webgl-active #open-surprise-btn:focus-visible {
-    outline-offset: -6px;
+html.env-3d #surprise-overlay.env-ready #open-surprise-btn span {
+    opacity: 1;
 }
 
 /* =========================================================

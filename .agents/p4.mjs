@@ -16,11 +16,14 @@ const playSpy = () => {
 async function state(p) {
   return await p.evaluate(() => {
     const o = document.getElementById('surprise-overlay');
+    const cv = document.getElementById('envelope-canvas');
+    const cs = getComputedStyle(cv);
     return {
-      webglActive: o.classList.contains('webgl-active'),
+      env3d: document.documentElement.classList.contains('env-3d'),
+      envReady: o.classList.contains('env-ready'),
       hidden: o.classList.contains('hidden'),
       played: !!window.__played,
-      canvasShown: getComputedStyle(document.getElementById('envelope-canvas')).display !== 'none',
+      canvasVisible: cs.display !== 'none' && parseFloat(cs.opacity) > 0.5,
     };
   });
 }

@@ -4,12 +4,15 @@
 // logic (music start, motion permission, overlay reveal) stays in
 // script.js; this module only choreographs the entry gesture.
 //
-// Fallback cascade (any failure → the original inline openSurprise()):
-//   reduced-motion | no WebGL | no GSAP | init throws  → never init.
-// Hard safety: once the reveal begins, revealCard() is force-called
-// after 3s no matter what, so a user can never be trapped.
+// Fallback cascade (any failure → original flat envelope + inline openSurprise()):
+//   reduced-motion | no WebGL | no GSAP | three load fails | init throws.
+// The mode (html.env-3d vs html.env-flat) is decided pre-paint by the inline
+// detector in <head>, so the flat envelope never flashes before the 3D scene.
+// Hard safety: once the reveal begins, revealCard() is force-called after 3s.
 // =========================================================
-import * as THREE from 'three';
+// three is imported dynamically inside boot() so a load failure is catchable
+// and we can revert to the flat envelope instead of stranding the user.
+let THREE = null;
 
 const overlay = document.getElementById('surprise-overlay');
 const canvas = document.getElementById('envelope-canvas');
@@ -20,6 +23,7 @@ const prefersReduced =
     window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let renderer, scene, camera, timer, envelope, keyLight, letterTex;
+let aborted = false;
 let raf = 0;
 let tl = null;
 let safetyTimer = 0;
@@ -39,15 +43,39 @@ function webglSupported() {
 }
 
 // ---- Bootstrap / fallback gate -------------------------------------------
-function boot() {
+async function boot() {
     if (prefersReduced || !overlay || !canvas || !btn || !gsap || !webglSupported()) {
-        return; // leave inline onclick="openSurprise()" intact
+        revertToFlat(); // ensure the flat envelope + inline openSurprise() path
+        return;
     }
+    // Slow/stalled library load → show the flat envelope rather than a dark void.
+    const loadTimer = setTimeout(() => { aborted = true; revertToFlat(); }, 3500);
+    try {
+        THREE = await import('three');
+    } catch (e) {
+        clearTimeout(loadTimer);
+        console.warn('[envelope3d] three load failed, using fallback:', e);
+        revertToFlat();
+        return;
+    }
+    clearTimeout(loadTimer);
+    if (aborted) return; // load came back after the timeout already reverted
     try {
         init();
     } catch (e) {
         console.warn('[envelope3d] init failed, using fallback:', e);
-        cleanupVisualOnly();
+        revertToFlat();
+    }
+}
+
+// Switch from the optimistic 3D mode back to the flat envelope and restore the
+// original click handler (covers no-gsap / load-fail / init-throw).
+function revertToFlat() {
+    document.documentElement.classList.remove('env-3d');
+    document.documentElement.classList.add('env-flat');
+    if (btn) {
+        try { btn.removeEventListener('click', beginReveal); } catch (e) {}
+        btn.onclick = window.openSurprise || null;
     }
 }
 
@@ -191,7 +219,7 @@ function init() {
         new THREE.MeshStandardMaterial({ map: letterTex, color: 0xffffff, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
     );
     const letterRoot = new THREE.Group();
-    letterRoot.position.set(0, -0.55, 0.04);
+    letterRoot.position.set(0, -1.15, 0.04); // tucked fully inside the pocket when closed
     letter.position.set(0, (H - 0.3) / 2 - 0.2, 0);
     letter.rotation.x = -0.9;        // tucked back in the pocket
     letter.scale.y = 0.5;            // folded
@@ -252,11 +280,15 @@ function init() {
       // camera draws in
       .to(camera.position, { z: 4.7, duration: 0.55, ease: 'power2.inOut' }, 1.35);
 
-    overlay.classList.add('webgl-active');
     btn.onclick = null;                          // detach inline openSurprise()
     btn.addEventListener('click', beginReveal);  // pointer + keyboard (button)
     window.addEventListener('resize', onResize);
     window.addEventListener('pagehide', dispose);
+
+    // Draw the first frame BEFORE revealing the canvas, then fade it in over the
+    // dark candlelit placeholder — the envelope emerges, never "pops" in blank.
+    renderer.render(scene, camera);
+    requestAnimationFrame(() => { if (!disposed) overlay.classList.add('env-ready'); });
 
     renderLoop();
 }
@@ -312,11 +344,6 @@ function moveFocus() {
 }
 
 // ---- Teardown -------------------------------------------------------------
-function cleanupVisualOnly() {
-    // init failed partway: make sure the fallback button is usable again.
-    if (overlay) overlay.classList.remove('webgl-active');
-}
-
 function dispose() {
     if (disposed) return;
     disposed = true;
