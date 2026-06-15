@@ -1,3 +1,56 @@
+/* =========================================================
+   P0 — DESIGN FOUNDATION (tokens)
+   Palette, type, spacing, radius, shadow & glow system.
+   Consumed by every selector below; nothing else hard-codes
+   raw colors so future phases re-theme from here.
+   ========================================================= */
+:root {
+    /* Ground — candlelit dusk (plum → ink) */
+    --ink: #160f1c;
+    --plum: #241830;
+    --plum-soft: #3a2844;
+
+    /* Primary — blush / rose-gold */
+    --rose: #ff8fa3;
+    --rose-deep: #e0607e;
+    --rose-soft: #ffb3c1;
+    --gold: #e8b48f;
+
+    /* Accent — refined mint, reserved for "Yes" / success only */
+    --mint: #2fd27d;
+    --mint-deep: #12b866;
+
+    /* Ink on dusk */
+    --text: #f5e9ec;
+    --text-dim: #d9c7cf;
+
+    /* Surface — translucent letter card */
+    --card-bg: linear-gradient(160deg, rgba(58, 40, 70, 0.72), rgba(33, 22, 42, 0.82));
+    --card-border: rgba(255, 180, 160, 0.18);
+
+    /* Type */
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-script: 'Caveat', 'Segoe Script', cursive;
+    --font-ui: 'Nunito', system-ui, sans-serif;
+
+    /* Spacing scale (8px base) */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-5: 48px;
+
+    /* Radius */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+
+    /* Depth */
+    --shadow-card: 0 24px 60px rgba(10, 6, 16, 0.55);
+    --glow-rose: 0 0 18px rgba(255, 143, 163, 0.35);
+    --glow-mint: 0 6px 20px rgba(47, 210, 125, 0.4), 0 0 15px rgba(47, 210, 125, 0.5);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,21 +58,26 @@
 }
 
 body {
-    background-color: #0b0c10;
-    font-family: 'Nunito', sans-serif;
+    background-color: var(--ink);
+    font-family: var(--font-ui);
+    color: var(--text);
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    /* Allow vertical scroll so tall content (yes-screen / short & landscape
+       viewports) is reachable instead of being clipped by the centered flexbox. */
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: var(--space-3) 0;
     background-image:
-        radial-gradient(circle at 15% 85%, rgba(255, 0, 127, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 85% 15%, rgba(255, 0, 127, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 50% 50%, rgba(30, 27, 75, 0.4) 0%, transparent 60%);
+        radial-gradient(circle at 18% 82%, rgba(224, 96, 126, 0.16) 0%, transparent 42%),
+        radial-gradient(circle at 82% 16%, rgba(232, 180, 143, 0.12) 0%, transparent 42%),
+        radial-gradient(circle at 50% 45%, rgba(60, 40, 80, 0.5) 0%, transparent 65%);
 }
 
-/* Floating hearts background */
+/* Floating hearts background (P3 replaces with a WebGL field) */
 .hearts-bg {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -33,7 +91,7 @@ body {
     content: '💕 💗 💖 💝 💓';
     position: absolute;
     font-size: 1.5rem;
-    opacity: 0.15;
+    opacity: 0.1;
     animation: floatHearts 12s linear infinite;
     white-space: nowrap;
     top: 100%;
@@ -47,23 +105,42 @@ body {
 }
 
 @keyframes floatHearts {
-    from { transform: translateY(0); opacity: 0.15; }
+    from { transform: translateY(0); opacity: 0.1; }
     to { transform: translateY(-110vh); opacity: 0; }
 }
 
+/* =========================================================
+   P1 — LAYOUT: the "letter card"
+   Both #main-container and #yes-container share this surface.
+   ========================================================= */
 .container {
     position: relative;
     z-index: 1;
     text-align: center;
-    padding: 40px 20px;
+    width: min(92vw, 560px);
+    /* auto (not 0 auto) so the flex item is centered via margins; this avoids the
+       Chromium bug where align-items:center clips the top of an overflowing item. */
+    margin: auto;
+    padding: clamp(28px, 5vw, 52px) clamp(20px, 4vw, 44px);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
 }
 
+/* Headline — editorial serif, written *to* someone */
 h1 {
-    font-size: 2.4rem;
-    color: #ff007f;
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-size: clamp(2rem, 5vw, 2.6rem);
+    line-height: 1.15;
+    letter-spacing: 0.2px;
+    color: var(--rose);
     font-weight: 900;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px rgba(255, 0, 127, 0.6), 0 0 20px rgba(255, 0, 127, 0.4);
+    margin-bottom: var(--space-3);
+    text-shadow: var(--glow-rose), 0 1px 0 rgba(0, 0, 0, 0.3);
     animation: wiggle 2s ease-in-out infinite;
 }
 
@@ -72,41 +149,50 @@ h1 {
     50% { transform: rotate(1deg); }
 }
 
+/* Temporary "photo card" plate behind the character. Tenor GIFs ship with
+   opaque white/cream frames; framing them as an intentional warm card hides the
+   raw white-box artifact until P5 replaces them with transparent bespoke clips. */
 .gif-container {
-    margin: 20px auto;
+    width: -moz-fit-content;
+    width: fit-content;
+    margin: var(--space-3) auto;
     display: flex;
     justify-content: center;
+    padding: 12px;
+    border-radius: 20px;
+    background: radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.92), rgba(255, 240, 232, 0.85));
+    box-shadow: inset 0 0 0 1px rgba(255, 180, 160, 0.35), 0 10px 26px rgba(10, 6, 16, 0.4);
 }
 
 #cat-gif {
     width: 200px;
     height: 200px;
     object-fit: contain;
-    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
+    border-radius: 12px;
     transition: opacity 0.3s ease;
 }
 
 .buttons {
     display: flex;
-    gap: 20px;
+    gap: var(--space-2);
     justify-content: center;
     align-items: center;
-    margin-top: 30px;
+    margin-top: var(--space-4);
     flex-wrap: wrap;
 }
 
 #yes-btn {
-    background: linear-gradient(135deg, #00e676, #00c853);
-    color: #0b0c10;
+    background: linear-gradient(135deg, var(--mint), var(--mint-deep));
+    color: #07140d;
     border: none;
-    border-radius: 16px;
+    border-radius: var(--radius-md);
     font-size: 1.6rem;
     font-weight: 900;
-    font-family: 'Nunito', sans-serif;
+    font-family: var(--font-ui);
     padding: 18px 45px;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
-    box-shadow: 0 6px 20px rgba(0, 230, 118, 0.45), 0 0 15px rgba(0, 230, 118, 0.6);
+    box-shadow: var(--glow-mint);
     letter-spacing: 1px;
     position: relative;
     overflow: hidden;
@@ -114,7 +200,7 @@ h1 {
 
 #yes-btn:hover {
     transform: scale(1.06) translateY(-2px);
-    box-shadow: 0 10px 28px rgba(0, 230, 118, 0.65), 0 0 25px rgba(0, 230, 118, 0.8);
+    box-shadow: 0 10px 28px rgba(47, 210, 125, 0.6), 0 0 25px rgba(47, 210, 125, 0.75);
 }
 
 #yes-btn:active {
@@ -124,17 +210,17 @@ h1 {
 .yes-glow-active {
     animation: yesPulseGlow 1.2s infinite alternate !important;
     border: 2px solid rgba(255, 255, 255, 0.35) !important;
-    color: #000 !important;
+    color: #07140d !important;
     z-index: 100;
 }
 
 @keyframes yesPulseGlow {
     0% {
-        box-shadow: 0 0 20px #00e676, 0 0 40px #00c853;
+        box-shadow: 0 0 20px var(--mint), 0 0 40px var(--mint-deep);
         transform: scale(1);
     }
     100% {
-        box-shadow: 0 0 40px #00e676, 0 0 80px #00c853, 0 0 120px #00e676;
+        box-shadow: 0 0 40px var(--mint), 0 0 80px var(--mint-deep), 0 0 120px var(--mint);
         transform: scale(1.05);
     }
 }
@@ -158,13 +244,13 @@ h1 {
 }
 
 #no-btn {
-    background: linear-gradient(135deg, #374151, #1f2937);
-    color: #e5e7eb;
-    border: 1px solid #4b5563;
-    border-radius: 12px;
+    background: linear-gradient(135deg, var(--plum-soft), var(--plum));
+    color: var(--text-dim);
+    border: 1px solid rgba(255, 180, 160, 0.22);
+    border-radius: var(--radius-sm);
     font-size: 1rem;
     font-weight: 700;
-    font-family: 'Nunito', sans-serif;
+    font-family: var(--font-ui);
     padding: 12px 28px;
     cursor: pointer;
     transition: background 0.2s, left 0.25s ease, top 0.25s ease;
@@ -172,21 +258,22 @@ h1 {
 }
 
 #no-btn:hover {
-    background: linear-gradient(135deg, #4b5563, #374151);
+    background: linear-gradient(135deg, #46314f, var(--plum-soft));
 }
 
 
+/* Teasing micro-copy — handwritten note */
 #tease-toast {
-    margin-top: 14px;
-    font-size: 1rem;
-    color: #ff007f;
-    text-shadow: 0 0 5px rgba(255, 0, 127, 0.5);
+    margin-top: var(--space-2);
+    font-family: var(--font-script);
+    font-size: 1.35rem;
+    color: var(--rose-soft);
+    text-shadow: 0 0 5px rgba(255, 143, 163, 0.4);
     font-weight: 700;
-    font-style: italic;
     opacity: 0;
     transform: translateY(6px);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    min-height: 1.5rem;
+    min-height: 1.6rem;
 }
 
 #tease-toast.show {
@@ -199,15 +286,16 @@ h1 {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 234, 224, 0.9);
     border: none;
     border-radius: 50%;
     width: 52px;
     height: 52px;
     font-size: 1.4rem;
     cursor: pointer;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 14px rgba(10, 6, 16, 0.4);
     transition: transform 0.2s;
     z-index: 100;
 }
@@ -218,7 +306,8 @@ h1 {
 
 /* Yes page specific */
 .yes-container h1.yes-title {
-    font-size: 2.8rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 6vw, 2.8rem);
     animation: bounceTitle 0.6s ease infinite alternate;
 }
 
@@ -228,10 +317,11 @@ h1 {
 }
 
 .yes-message {
-    font-size: 1.4rem;
-    color: #e91e8c;
+    font-family: var(--font-script);
+    font-size: 1.6rem;
+    color: var(--rose-deep);
     font-weight: 700;
-    margin-top: 24px;
+    margin-top: var(--space-3);
     animation: fadeIn 1s ease 0.5s both;
 }
 
@@ -248,42 +338,51 @@ h1 {
 .options-menu {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-top: 30px;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
     flex-wrap: wrap;
     animation: fadeIn 1s ease 1s both;
 }
 
+/* Date choices — paper "tickets" */
 .food-btn {
-    background: rgba(255, 0, 127, 0.1);
-    color: #ff007f;
-    border: 2px solid #ff007f;
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-size: 1.2rem;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 180, 160, 0.07));
+    color: var(--rose-soft);
+    border: 1px solid rgba(255, 143, 163, 0.45);
+    border-radius: var(--radius-sm);
+    padding: 16px 22px;
+    font-size: 1.15rem;
     font-weight: 700;
-    font-family: 'Nunito', sans-serif;
+    font-family: var(--font-ui);
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+    box-shadow: 0 6px 18px rgba(10, 6, 16, 0.35);
 }
 
 .food-btn:hover {
-    background: #ff007f;
+    background: linear-gradient(160deg, var(--rose-deep), #c84d6c);
     color: #fff;
-    box-shadow: 0 0 20px rgba(255, 0, 127, 0.6);
-    transform: translateY(-3px) scale(1.05);
+    border-color: var(--rose-soft);
+    box-shadow: 0 10px 26px rgba(224, 96, 126, 0.45);
+    transform: translateY(-3px) scale(1.04);
 }
 
+/* =========================================================
+   Surprise overlay — flat "envelope" (P4 replaces with 3D)
+   ========================================================= */
 #surprise-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #0b0c10;
+    background-color: var(--ink);
+    background-image:
+        radial-gradient(circle at 50% 45%, rgba(60, 40, 80, 0.55) 0%, transparent 65%);
     z-index: 1000;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    overflow-y: auto;
+    padding: var(--space-3);
     transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
@@ -293,11 +392,12 @@ h1 {
 }
 
 #surprise-overlay h2 {
-    color: #ff007f;
-    font-size: 2.2rem;
-    margin-bottom: 30px;
-    text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
-    font-family: 'Nunito', sans-serif;
+    font-family: var(--font-display);
+    color: var(--rose);
+    font-size: clamp(1.8rem, 5vw, 2.2rem);
+    font-weight: 900;
+    margin-bottom: var(--space-4);
+    text-shadow: 0 0 14px rgba(255, 143, 163, 0.4);
     text-align: center;
     animation: heartbeatPulse 1.5s ease-in-out infinite alternate;
 }
@@ -305,27 +405,27 @@ h1 {
 @keyframes heartbeatPulse {
     0% {
         transform: scale(1);
-        text-shadow: 0 0 10px rgba(255, 0, 127, 0.4);
+        text-shadow: 0 0 10px rgba(255, 143, 163, 0.35);
     }
     100% {
         transform: scale(1.03);
-        text-shadow: 0 0 30px rgba(255, 0, 127, 1), 0 0 15px rgba(255, 0, 127, 0.6);
+        text-shadow: 0 0 30px rgba(255, 143, 163, 0.85), 0 0 15px rgba(255, 143, 163, 0.5);
     }
 }
 
 #open-surprise-btn {
     position: relative;
-    background: #1a1a24;
-    color: #ff007f;
-    border: 3px solid #ff007f;
+    background: var(--plum);
+    color: var(--rose);
+    border: 3px solid var(--rose);
     border-radius: 8px;
     width: 240px;
     height: 150px;
     font-size: 1.4rem;
     font-weight: 900;
-    font-family: 'Nunito', sans-serif;
+    font-family: var(--font-ui);
     cursor: pointer;
-    box-shadow: 0 0 20px rgba(255, 0, 127, 0.3);
+    box-shadow: 0 0 24px rgba(255, 143, 163, 0.3);
     transition: transform 0.3s, box-shadow 0.3s;
     display: flex;
     align-items: center;
@@ -340,7 +440,7 @@ h1 {
     width: 0; height: 0;
     border-left: 120px solid transparent;
     border-right: 120px solid transparent;
-    border-top: 80px solid rgba(255, 0, 127, 0.25);
+    border-top: 80px solid rgba(255, 143, 163, 0.25);
     border-bottom: 70px solid transparent;
     z-index: 1;
 }
@@ -352,61 +452,117 @@ h1 {
     width: 0; height: 0;
     border-left: 120px solid transparent;
     border-right: 120px solid transparent;
-    border-bottom: 70px solid rgba(255, 0, 127, 0.15);
+    border-bottom: 70px solid rgba(232, 180, 143, 0.18);
     border-top: 80px solid transparent;
 }
 
 #open-surprise-btn span {
     position: relative;
     z-index: 2;
-    background: #0b0c10;
+    background: var(--ink);
     padding: 8px 20px;
     border-radius: 20px;
-    border: 2px solid #ff007f;
+    border: 2px solid var(--rose);
     letter-spacing: 1px;
 }
 
 #open-surprise-btn:hover {
     transform: scale(1.08) translateY(-5px);
-    box-shadow: 0 10px 30px rgba(255, 0, 127, 0.6);
+    box-shadow: 0 10px 30px rgba(255, 143, 163, 0.55);
+}
+
+/* =========================================================
+   Accessibility — visible keyboard focus for all controls.
+   Uses :focus-visible so pointer users don't see the ring.
+   ========================================================= */
+#yes-btn:focus-visible,
+#no-btn:focus-visible,
+.food-btn:focus-visible,
+#open-surprise-btn:focus-visible,
+#music-toggle:focus-visible {
+    outline: 3px solid var(--rose-soft);
+    outline-offset: 3px;
+}
+
+/* Respect users who request less motion: calm the infinite ambient animations
+   (wiggle / heartbeat / bounce / floating hearts / glow pulse) without removing
+   any functionality — toasts, overlay reveal and GIF swaps still work. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Short / landscape viewports: trim heights so the screen fits without scroll. */
+@media (max-height: 600px) {
+    .container {
+        padding: 18px 22px;
+    }
+
+    h1 {
+        margin-bottom: var(--space-2);
+    }
+
+    .gif-container {
+        margin: var(--space-2) auto;
+    }
+
+    #cat-gif {
+        width: 130px;
+        height: 130px;
+    }
+
+    .yes-container #cat-gif {
+        width: 140px;
+        height: 140px;
+    }
+
+    .buttons {
+        margin-top: var(--space-2);
+    }
 }
 
 /* Responsive adjustments for mobile devices */
 @media (max-width: 600px) {
-    h1 {
-        font-size: 1.8rem;
+    .container {
+        width: 92vw;
+        padding: 28px 18px;
     }
-    
+
+    h1 {
+        font-size: 1.85rem;
+    }
+
     .yes-container h1.yes-title {
-        font-size: 1.8rem;
+        font-size: 1.9rem;
     }
 
     .yes-message {
-        font-size: 1.15rem;
-        margin-top: 15px;
+        font-size: 1.3rem;
+        margin-top: var(--space-2);
     }
-    
+
     #surprise-overlay h2 {
         font-size: 1.8rem;
     }
-    
+
     #yes-btn {
         font-size: 1.3rem;
         padding: 14px 30px;
     }
-    
+
     #no-btn {
         font-size: 1rem;
         padding: 12px 24px;
     }
-    
+
     #cat-gif {
         width: 160px;
         height: 160px;
-    }
-    
-    .container {
-        padding: 20px 15px;
     }
 
     .yes-container #cat-gif {
@@ -414,7 +570,7 @@ h1 {
         height: 150px;
         margin: 10px auto;
     }
-    
+
     .options-menu {
         gap: 12px;
         margin-top: 15px;
@@ -422,17 +578,17 @@ h1 {
     }
 
     .food-btn {
-        font-size: 0.95rem;
-        padding: 12px 16px;
+        font-size: 0.98rem;
+        padding: 14px 16px;
         width: 100%;
         max-width: 260px;
         margin: 0 auto;
     }
-    
+
     #open-surprise-btn {
         transform: scale(0.85);
     }
-    
+
     #open-surprise-btn:hover {
         transform: scale(0.9) translateY(-5px);
     }
