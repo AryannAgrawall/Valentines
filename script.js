@@ -135,13 +135,11 @@ window.addEventListener('pagehide', () => {
   savedMusicTime = 0;
 });
 
-function openSurprise() {
-    // Hide the overlay
-    const overlay = document.getElementById('surprise-overlay');
-    if (overlay) {
-        overlay.classList.add('hidden');
-    }
-
+// Gesture-critical side effects (music start + motion permission). Must run
+// synchronously inside a user gesture so autoplay/permission prompts aren't
+// blocked. Split out so the 3D envelope (P4) can run these on tap and defer the
+// overlay hide until its open animation finishes.
+function primeExperience() {
     // Ensure background music is loaded (already set on DOMContentLoaded) and start at promised position
     music.currentTime = 26;
     music.muted = false;
@@ -152,6 +150,26 @@ function openSurprise() {
         requestMotionPermissions();
     }
 }
+
+// Hides the intro overlay → triggers the P2 reveal of the card beneath.
+// Idempotent: safe to call from the 3D timeline, the safety timeout, or fallback.
+function revealCard() {
+    const overlay = document.getElementById('surprise-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+    }
+}
+
+// Unchanged behaviour: the inline onclick + reduced-motion/fallback path.
+function openSurprise() {
+    revealCard();
+    primeExperience();
+}
+
+// Expose for the envelope module (loaded as an ES module, separate scope).
+window.primeExperience = primeExperience;
+window.revealCard = revealCard;
+window.openSurprise = openSurprise;
 
 function toggleMusic() {
     if (musicPlaying) {
@@ -351,41 +369,44 @@ document.addEventListener('keydown', function (e) {
 }, { passive: false });
 
 function launchConfetti() {
-    const colors = ['#ff69b4', '#ff1493', '#ff85a2', '#ffb3c1', '#ff0000', '#ff6347', '#fff', '#ffdf00'];
+    // Palette-matched, romantic rather than carnival.
+    const colors = ['#ff8fa3', '#e0607e', '#ffb3c1', '#e8b48f', '#ffffff', '#2fd27d'];
+    // Calm physics: softer launch, real gravity, gentle drift, larger slow petals.
+    const base = { colors, gravity: 0.8, scalar: 1.1, drift: 0.4, decay: 0.92, ticks: 260 };
+
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+        // A single, gentle bloom — celebratory but still.
+        confetti({ ...base, particleCount: 40, spread: 70, startVelocity: 26, origin: { x: 0.5, y: 0.4 } });
+        return;
+    }
+
+    // Opening bloom from the heart of the card.
+    confetti({ ...base, particleCount: 120, spread: 90, startVelocity: 38, origin: { x: 0.5, y: 0.35 } });
+
     const duration = 6000;
     const end = Date.now() + duration;
+    let tick = 0;
 
-    // Initial big burst
-    confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { x: 0.5, y: 0.3 },
-        colors
-    });
-
-    // Continuous side cannons
+    // Gentle, choreographed afterglow: soft side drifts that ease down over time,
+    // with an occasional slow rising puff from below.
     const interval = setInterval(() => {
-        if (Date.now() > end) {
+        const remaining = end - Date.now();
+        if (remaining <= 0) {
             clearInterval(interval);
             return;
         }
+        tick++;
+        const intensity = Math.max(0.3, remaining / duration);
+        const count = Math.round(22 * intensity);
 
-        confetti({
-            particleCount: 40,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0, y: 0.6 },
-            colors
-        });
+        confetti({ ...base, particleCount: count, angle: 60, spread: 50, startVelocity: 32, origin: { x: 0, y: 0.65 } });
+        confetti({ ...base, particleCount: count, angle: 120, spread: 50, startVelocity: 32, origin: { x: 1, y: 0.65 } });
 
-        confetti({
-            particleCount: 40,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1, y: 0.6 },
-            colors
-        });
-    }, 300);
+        if (tick % 3 === 0) {
+            confetti({ ...base, particleCount: 14, spread: 110, startVelocity: 26, origin: { x: 0.5, y: 0.72 } });
+        }
+    }, 350);
 }
 
 function selectFood(choice) {
@@ -398,10 +419,16 @@ function selectFood(choice) {
     }
 
     confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#00e676', '#ff007f']
+        particleCount: 80,
+        spread: 80,
+        startVelocity: 32,
+        gravity: 0.8,
+        scalar: 1.1,
+        drift: 0.4,
+        decay: 0.92,
+        ticks: 240,
+        origin: { y: 0.62 },
+        colors: ['#2fd27d', '#ff8fa3', '#ffb3c1', '#e8b48f', '#ffffff']
     });
 
     // Push new state so pressing "back" will return to the options page

@@ -49,6 +49,15 @@
     --shadow-card: 0 24px 60px rgba(10, 6, 16, 0.55);
     --glow-rose: 0 0 18px rgba(255, 143, 163, 0.35);
     --glow-mint: 0 6px 20px rgba(47, 210, 125, 0.4), 0 0 15px rgba(47, 210, 125, 0.5);
+
+    /* Motion — P2. One easing/duration vocabulary for the whole experience.
+       Calm & intentional: decel-heavy ease-out; anticipate used sparingly. */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-anticipate: cubic-bezier(0.34, 1.4, 0.5, 1);
+    --dur-fast: 0.25s;
+    --dur-med: 0.5s;
+    --dur-slow: 0.9s;
 }
 
 * {
@@ -74,7 +83,12 @@ body {
     background-image:
         radial-gradient(circle at 18% 82%, rgba(224, 96, 126, 0.16) 0%, transparent 42%),
         radial-gradient(circle at 82% 16%, rgba(232, 180, 143, 0.12) 0%, transparent 42%),
-        radial-gradient(circle at 50% 45%, rgba(60, 40, 80, 0.5) 0%, transparent 65%);
+        /* warm candle pool that the card sits inside */
+        radial-gradient(ellipse 65% 60% at 50% 48%, rgba(232, 180, 143, 0.1) 0%, transparent 70%),
+        radial-gradient(circle at 50% 45%, rgba(60, 40, 80, 0.5) 0%, transparent 65%),
+        /* edge vignette to anchor the composition on wide screens */
+        radial-gradient(circle at 50% 50%, transparent 52%, rgba(8, 4, 12, 0.55) 100%);
+    background-attachment: fixed;
 }
 
 /* Floating hearts background (P3 replaces with a WebGL field) */
@@ -91,21 +105,21 @@ body {
     content: '💕 💗 💖 💝 💓';
     position: absolute;
     font-size: 1.5rem;
-    opacity: 0.1;
-    animation: floatHearts 12s linear infinite;
+    opacity: 0.08;
+    animation: floatHearts 18s linear infinite;
     white-space: nowrap;
     top: 100%;
     left: 10%;
 }
 
 .hearts-bg::after {
-    animation-delay: 6s;
+    animation-delay: 9s;
     left: 60%;
     content: '💗 💕 💓 💖 💝';
 }
 
 @keyframes floatHearts {
-    from { transform: translateY(0); opacity: 0.1; }
+    from { transform: translateY(0); opacity: 0.08; }
     to { transform: translateY(-110vh); opacity: 0; }
 }
 
@@ -125,7 +139,7 @@ body {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-shadow: var(--shadow-card), 0 0 120px rgba(224, 96, 126, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
@@ -141,12 +155,27 @@ h1 {
     font-weight: 900;
     margin-bottom: var(--space-3);
     text-shadow: var(--glow-rose), 0 1px 0 rgba(0, 0, 0, 0.3);
-    animation: wiggle 2s ease-in-out infinite;
+    /* Editorial stillness with a slow candlelight glow — no rotation. */
+    animation: glowBreathe 6s var(--ease-in-out) infinite;
 }
 
-@keyframes wiggle {
-    0%, 100% { transform: rotate(-1deg); }
-    50% { transform: rotate(1deg); }
+/* Slow, calm glow breathe — used by the headline and the celebration title. */
+@keyframes glowBreathe {
+    0%, 100% { text-shadow: var(--glow-rose), 0 1px 0 rgba(0, 0, 0, 0.3); }
+    50% { text-shadow: 0 0 28px rgba(255, 143, 163, 0.55), 0 0 12px rgba(255, 143, 163, 0.4), 0 1px 0 rgba(0, 0, 0, 0.3); }
+}
+
+/* State entrance — the card "settles in". On first reveal it's triggered by the
+   overlay being dismissed (sibling selector); the Yes screen plays it when shown.
+   NOTE: depends on #surprise-overlay and #main-container remaining siblings. */
+#surprise-overlay.hidden ~ #main-container,
+#yes-container {
+    animation: contentReveal var(--dur-slow) var(--ease-out) both;
+}
+
+@keyframes contentReveal {
+    from { opacity: 0; transform: translateY(18px) scale(0.985); }
+    to { opacity: 1; transform: none; }
 }
 
 /* Temporary "photo card" plate behind the character. Tenor GIFs ship with
@@ -191,7 +220,13 @@ h1 {
     font-family: var(--font-ui);
     padding: 18px 45px;
     cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
+    /* Growth (font-size/padding set by JS) now eases with a gentle overshoot so
+       each "No" makes Yes swell with weight rather than snapping. */
+    transition:
+        transform var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-fast) var(--ease-out),
+        font-size var(--dur-med) var(--ease-anticipate),
+        padding var(--dur-med) var(--ease-anticipate);
     box-shadow: var(--glow-mint);
     letter-spacing: 1px;
     position: relative;
@@ -253,7 +288,12 @@ h1 {
     font-family: var(--font-ui);
     padding: 12px 28px;
     cursor: pointer;
-    transition: background 0.2s, left 0.25s ease, top 0.25s ease;
+    /* Smoother, slightly longer glide so the runaway slips away gracefully. */
+    transition:
+        background var(--dur-fast) var(--ease-out),
+        left var(--dur-med) var(--ease-out),
+        top var(--dur-med) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
@@ -271,14 +311,19 @@ h1 {
     text-shadow: 0 0 5px rgba(255, 143, 163, 0.4);
     font-weight: 700;
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(10px) scale(0.97);
+    filter: blur(3px);
+    transition:
+        opacity var(--dur-med) var(--ease-out),
+        transform var(--dur-med) var(--ease-out),
+        filter var(--dur-med) var(--ease-out);
     min-height: 1.6rem;
 }
 
 #tease-toast.show {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: blur(0);
 }
 
 /* Music toggle button */
@@ -308,19 +353,25 @@ h1 {
 .yes-container h1.yes-title {
     font-family: var(--font-display);
     font-size: clamp(2.1rem, 6vw, 2.8rem);
-    animation: bounceTitle 0.6s ease infinite alternate;
+    /* One-time joyful settle, then the same calm glow breathe as the headline. */
+    animation:
+        titleEntrance var(--dur-slow) var(--ease-anticipate) both,
+        glowBreathe 6s var(--ease-in-out) var(--dur-slow) infinite;
 }
 
-@keyframes bounceTitle {
-    from { transform: translateY(0) rotate(-1deg); }
-    to { transform: translateY(-12px) rotate(1deg); }
+@keyframes titleEntrance {
+    0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+    60% { opacity: 1; transform: scale(1.02) translateY(0); }
+    100% { transform: scale(1) translateY(0); }
 }
 
 .yes-message {
     font-family: var(--font-script);
-    font-size: 1.6rem;
-    color: var(--rose-deep);
+    font-size: clamp(1.45rem, 4vw, 1.85rem);
+    line-height: 1.4;
+    color: var(--rose-soft);
     font-weight: 700;
+    text-shadow: 0 1px 3px rgba(10, 6, 16, 0.7), 0 0 10px rgba(10, 6, 16, 0.5);
     margin-top: var(--space-3);
     animation: fadeIn 1s ease 0.5s both;
 }
@@ -383,12 +434,19 @@ h1 {
     align-items: center;
     overflow-y: auto;
     padding: var(--space-3);
-    transition: opacity 0.8s ease, visibility 0.8s ease;
+    /* The envelope screen lifts and blurs away to reveal the card beneath. */
+    transition:
+        opacity var(--dur-slow) var(--ease-out),
+        visibility var(--dur-slow) var(--ease-out),
+        transform var(--dur-slow) var(--ease-out),
+        filter var(--dur-slow) var(--ease-out);
 }
 
 #surprise-overlay.hidden {
     opacity: 0;
     visibility: hidden;
+    transform: scale(1.06);
+    filter: blur(6px);
 }
 
 #surprise-overlay h2 {
@@ -399,17 +457,18 @@ h1 {
     margin-bottom: var(--space-4);
     text-shadow: 0 0 14px rgba(255, 143, 163, 0.4);
     text-align: center;
-    animation: heartbeatPulse 1.5s ease-in-out infinite alternate;
+    /* Calm curiosity — a gentle breathe, not an anxious heartbeat. */
+    animation: curiosityBreathe 3.5s var(--ease-in-out) infinite;
 }
 
-@keyframes heartbeatPulse {
-    0% {
+@keyframes curiosityBreathe {
+    0%, 100% {
         transform: scale(1);
-        text-shadow: 0 0 10px rgba(255, 143, 163, 0.35);
+        text-shadow: 0 0 14px rgba(255, 143, 163, 0.4);
     }
-    100% {
-        transform: scale(1.03);
-        text-shadow: 0 0 30px rgba(255, 143, 163, 0.85), 0 0 15px rgba(255, 143, 163, 0.5);
+    50% {
+        transform: scale(1.015);
+        text-shadow: 0 0 30px rgba(255, 143, 163, 0.7), 0 0 15px rgba(255, 143, 163, 0.45);
     }
 }
 
@@ -426,7 +485,7 @@ h1 {
     font-family: var(--font-ui);
     cursor: pointer;
     box-shadow: 0 0 24px rgba(255, 143, 163, 0.3);
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: transform var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -472,6 +531,71 @@ h1 {
 }
 
 /* =========================================================
+   P4 — 3D envelope canvas. Hidden by default; only shown when
+   envelope3d.js confirms WebGL (and not reduced-motion) and adds
+   .webgl-active. In every fallback case the flat button below renders
+   exactly as before.
+   ========================================================= */
+#envelope-canvas {
+    display: none;
+}
+
+#surprise-overlay.webgl-active #envelope-canvas {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none; /* the full-area button handles input */
+}
+
+#surprise-overlay.webgl-active h2 {
+    position: relative;
+    z-index: 3;
+    pointer-events: none; /* decorative; the full-area button beneath takes input */
+}
+
+/* When 3D is active the button becomes a transparent, full-area, keyboard-
+   focusable hit target over the canvas — the 3D envelope is the affordance. */
+#surprise-overlay.webgl-active #open-surprise-btn {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 2;
+}
+
+#surprise-overlay.webgl-active #open-surprise-btn::before,
+#surprise-overlay.webgl-active #open-surprise-btn::after {
+    display: none;
+}
+
+#surprise-overlay.webgl-active #open-surprise-btn:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Keep an inviting hint pinned near the bottom instead of centered. */
+#surprise-overlay.webgl-active #open-surprise-btn span {
+    position: absolute;
+    bottom: 9%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(11, 12, 16, 0.55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+#surprise-overlay.webgl-active #open-surprise-btn:focus-visible {
+    outline-offset: -6px;
+}
+
+/* =========================================================
    Accessibility — visible keyboard focus for all controls.
    Uses :focus-visible so pointer users don't see the ring.
    ========================================================= */
@@ -484,45 +608,89 @@ h1 {
     outline-offset: 3px;
 }
 
-/* Respect users who request less motion: calm the infinite ambient animations
-   (wiggle / heartbeat / bounce / floating hearts / glow pulse) without removing
-   any functionality — toasts, overlay reveal and GIF swaps still work. */
+/* Respect users who request less motion: neutralise the ambient/entrance
+   animations (glowBreathe / curiosityBreathe / contentReveal / titleEntrance /
+   floatHearts / glow pulse) and the refined transitions, without removing any
+   functionality — toasts, overlay reveal, growth and GIF swaps all still work.
+   launchConfetti() has its own reduced-motion guard in script.js. */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
         animation-duration: 0.001ms !important;
         animation-iteration-count: 1 !important;
+        animation-delay: 0ms !important;
         transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
     }
 }
 
-/* Short / landscape viewports: trim heights so the screen fits without scroll. */
-@media (max-height: 600px) {
+/* Large screens: give the card more presence so it reads as intentional,
+   not a small panel lost in empty space. */
+@media (min-width: 900px) {
     .container {
-        padding: 18px 22px;
+        width: min(90vw, 620px);
+        padding: 56px 60px;
     }
 
     h1 {
-        margin-bottom: var(--space-2);
-    }
-
-    .gif-container {
-        margin: var(--space-2) auto;
+        font-size: 2.9rem;
     }
 
     #cat-gif {
-        width: 130px;
-        height: 130px;
+        width: 220px;
+        height: 220px;
     }
 
     .yes-container #cat-gif {
-        width: 140px;
-        height: 140px;
+        width: 280px;
+        height: 280px;
+    }
+}
+
+/* Short / landscape viewports: trim heights aggressively so the primary CTA
+   (Yes / No, and the date tickets) stays above the fold where possible.
+   Placed after the min-width block so it wins on wide-but-short screens. */
+@media (max-height: 600px) {
+    .container {
+        padding: 16px 24px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: var(--space-1);
+    }
+
+    .gif-container {
+        margin: var(--space-1) auto;
+        padding: 8px;
+    }
+
+    #cat-gif,
+    .yes-container #cat-gif {
+        width: 104px;
+        height: 104px;
+    }
+
+    .yes-container h1.yes-title {
+        font-size: 1.6rem;
+    }
+
+    .yes-message {
+        font-size: 1.25rem;
+        margin-top: var(--space-1);
     }
 
     .buttons {
         margin-top: var(--space-2);
+    }
+
+    .options-menu {
+        margin-top: var(--space-2);
+    }
+
+    #tease-toast {
+        margin-top: var(--space-1);
     }
 }
 

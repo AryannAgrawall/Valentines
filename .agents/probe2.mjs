@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const p = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
+p.on('console', m => console.log('PAGE:', m.text()));
+await p.addInitScript(() => { HTMLMediaElement.prototype.play = () => Promise.resolve(); });
+await p.goto('http://localhost:8123/index.html', { waitUntil: 'networkidle' });
+await p.waitForTimeout(700);
+console.log('clicking at', Math.round(Date.now() % 100000));
+await p.click('#open-surprise-btn');
+await p.waitForTimeout(2500);
+await browser.close();
