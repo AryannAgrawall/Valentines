@@ -57,8 +57,8 @@
 
     function makeDust(layer) {
         const cfg = layer === 'far'
-            ? { rMin: 0.8, rMax: 1.7, aMin: 0.03, aMax: 0.08, tMin: 28, tMax: 40, par: 0.3 }
-            : { rMin: 1.6, rMax: 3.0, aMin: 0.05, aMax: 0.12, tMin: 20, tMax: 30, par: 0.6 };
+            ? { rMin: 1.0, rMax: 2.0, aMin: 0.07, aMax: 0.16, tMin: 28, tMax: 40, par: 0.3 }
+            : { rMin: 1.8, rMax: 3.4, aMin: 0.12, aMax: 0.24, tMin: 20, tMax: 30, par: 0.6 };
         const travel = rand(cfg.tMin, cfg.tMax);
         return {
             x: rand(0, W), y: rand(0, H),
@@ -75,8 +75,8 @@
         const s = [SP_GOLD, SP_ROSE, SP_WHITE][Math.floor(Math.random() * 3)];
         return {
             x: rand(0, W), y: rand(0, H),
-            r: rand(2.0, 3.6),
-            a: rand(0.08, 0.15),
+            r: rand(2.4, 4.2),
+            a: rand(0.18, 0.32),
             vy: -(H / travel),
             sway: rand(5, 12), swayPhase: rand(0, Math.PI * 2), swaySpeed: rand(0.04, 0.1),
             par: 1.0, sprite: s,
@@ -84,9 +84,9 @@
     }
 
     function build() {
-        far = Array.from({ length: 10 }, () => makeDust('far'));
-        mid = Array.from({ length: 8 }, () => makeDust('mid'));
-        embers = Array.from({ length: 4 }, makeEmber);
+        far = Array.from({ length: 16 }, () => makeDust('far'));
+        mid = Array.from({ length: 13 }, () => makeDust('mid'));
+        embers = Array.from({ length: 7 }, makeEmber);
     }
 
     function resize() {
