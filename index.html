@@ -5,6 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Can I take you out? 🥺</title>
+    <meta name="description" content="I have a question for you... 💌">
+    <meta name="theme-color" content="#160f1c">
+    <link rel="canonical" href="https://annoying-but-cute.vercel.app/">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+    <!-- Shared-link preview (Open Graph) — absolute URLs for reliable previews
+         on WhatsApp / iMessage / Facebook. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="A little question 💌">
+    <meta property="og:title" content="Can I take you out on a date? 🥺">
+    <meta property="og:description" content="I have a question for you...">
+    <meta property="og:image" content="https://annoying-but-cute.vercel.app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="A candlelit letter card asking: Can I take you out on a date?">
+    <meta property="og:url" content="https://annoying-but-cute.vercel.app/">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter / X large-image card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Can I take you out on a date? 🥺">
+    <meta name="twitter:description" content="I have a question for you...">
+    <meta name="twitter:image" content="https://annoying-but-cute.vercel.app/og-image.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://media.tenor.com" crossorigin>
@@ -54,14 +81,19 @@
     <div class="hearts-bg"></div>
 
     <div class="container" id="main-container">
-        <h1 id="main-question">I really like you. Can I take you out on a date? 🥺</h1>
+        <!-- Move 3: handwritten greeting + the letter that types out, then the
+             question + controls fade in. Greeting/body are filled by script.js. -->
+        <p class="letter-greeting" id="letter-greeting" aria-hidden="true"></p>
+        <p class="letter-body" id="letter-body"></p>
 
-        <div class="gif-container">
+        <h1 id="main-question" class="stagger">Can I take you out on a date? 🥺</h1>
+
+        <div class="gif-container stagger">
             <img id="cat-gif" src="https://media.tenor.com/EBV7OT7ACfwAAAAj/u-u-qua-qua-u-quaa.gif"
                 alt="cute character">
         </div>
 
-        <div class="buttons">
+        <div class="buttons stagger">
             <button id="yes-btn" onclick="handleYesClick()">Yes</button>
             <button id="no-btn" onclick="handleNoClick()">No</button>
         </div>

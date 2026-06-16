@@ -19,9 +19,14 @@ export default async function handler(req, res) {
                 content: `🚨 ${data.message}`
             };
         } else if (type === 'final') {
-            const { choice, noClickCount, yesTeasedCount, sessionStartTime } = data;
+            const { choice, noClickCount, yesTeasedCount, sessionStartTime, recipientName } = data;
             const timeTakenSeconds = Math.round((Date.now() - sessionStartTime) / 1000);
-            
+
+            // Personalize with her name when provided; otherwise fall back to "She".
+            const name = (recipientName || '').trim();
+            const subj = name || "She";          // sentence subject ("Aanya" or "She")
+            const titleName = name ? `${name}'s` : "Official";
+
             // 1. Format Time
             let timeStr = `${timeTakenSeconds} seconds`;
             if (timeTakenSeconds > 60) {
@@ -32,24 +37,24 @@ export default async function handler(req, res) {
 
             // 2. Behavior Interpretations
             let hesitationAnalysis = "";
-            if (timeTakenSeconds < 15) hesitationAnalysis = "Zero hesitation! She knew what she wanted. 🏃‍♀️💨";
-            else if (timeTakenSeconds < 40) hesitationAnalysis = "Decent speed, she was definitely excited! 🥰";
-            else hesitationAnalysis = "She took her sweet time exploring the screen! 🧐";
+            if (timeTakenSeconds < 15) hesitationAnalysis = `Zero hesitation! ${subj} knew what she wanted. 🏃‍♀️💨`;
+            else if (timeTakenSeconds < 40) hesitationAnalysis = `Decent speed — ${subj} was definitely excited! 🥰`;
+            else hesitationAnalysis = `${subj} took her sweet time exploring the screen! 🧐`;
 
             let noButtonAnalysis = "";
-            if (noClickCount === 0) noButtonAnalysis = "100% loyal, she didn't even touch the 'No' button! 🥺❤️";
-            else if (noClickCount < 5) noButtonAnalysis = `She tried escaping ${noClickCount} times just to read the guilt-trip texts! 😂`;
-            else noButtonAnalysis = `She fought hard (${noClickCount} escapes!), but the runaway button defeated her! 😈`;
-            
+            if (noClickCount === 0) noButtonAnalysis = `100% loyal — ${subj} didn't even touch the 'No' button! 🥺❤️`;
+            else if (noClickCount < 5) noButtonAnalysis = `${subj} tried escaping ${noClickCount} times just to read the guilt-trip texts! 😂`;
+            else noButtonAnalysis = `${subj} fought hard (${noClickCount} escapes!), but the runaway button won! 😈`;
+
             let teaseAnalysis = "";
-            if (yesTeasedCount > 0) teaseAnalysis = `She got caught in the teasing trap ${yesTeasedCount} times! 🤭`;
-            else teaseAnalysis = "She successfully avoided your early 'Yes' teasing trap! 🧠";
+            if (yesTeasedCount > 0) teaseAnalysis = `${subj} got caught in the teasing trap ${yesTeasedCount} times! 🤭`;
+            else teaseAnalysis = `${subj} dodged your early 'Yes' teasing trap! 🧠`;
 
             discordPayload = {
                 embeds: [{
-                    title: "💌 Official Valentine Report Card!",
+                    title: `💌 ${titleName} Valentine Report Card!`,
                     color: 0xff007f, // Pink color
-                    description: `**Yo!** She clicked YES and the date is set for: **${choice}**! 🍕📸☕\n\nHere is her behavioral analysis:`,
+                    description: `**She said YES!** 🥹 ${name ? `**${name}**` : "She"} and you are going on: **${choice}**! 🍕📸☕\n\nHere's how it went down:`,
                     fields: [
                         { name: "⏱️ Decision Speed", value: `**${timeStr}**\n*${hesitationAnalysis}*`, inline: false },
                         { name: "🐾 The 'No' Button", value: `**${noClickCount} clicks**\n*${noButtonAnalysis}*`, inline: false },

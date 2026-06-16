@@ -53,7 +53,12 @@
 
     // ---- Particle layers --------------------------------------------------
     // travelSec = seconds to cross the viewport height (slower = farther back).
-    let far = [], mid = [], embers = [];
+    let far = [], mid = [], embers = [], bokeh = [];
+
+    // Cached full-screen gradients (rebuilt on resize): a warm candle pool that
+    // breathes, and an edge vignette that darkens the corners to pool the light
+    // inward. Static color stops; the pool's intensity is animated via globalAlpha.
+    let poolGrad = null, vignGrad = null;
 
     function makeDust(layer) {
         const cfg = layer === 'far'
@@ -80,6 +85,24 @@
             vy: -(H / travel),
             sway: rand(5, 12), swayPhase: rand(0, Math.PI * 2), swaySpeed: rand(0.04, 0.1),
             par: 1.0, sprite: s,
+            // Candle flicker: a fast, deep alpha pulse so embers feel alive.
+            flickPhase: rand(0, Math.PI * 2), flickSpeed: rand(0.6, 1.4), flickAmt: rand(0.25, 0.5),
+        };
+    }
+
+    // Large, very soft, out-of-focus orbs — the "bokeh" luxury cue. Few, faint,
+    // slow, and most affected by pointer parallax (they read as foreground).
+    function makeBokeh() {
+        const travel = rand(45, 75);
+        const s = [SP_GOLD, SP_ROSE, SP_WHITE][Math.floor(Math.random() * 3)];
+        return {
+            x: rand(0, W), y: rand(0, H),
+            r: rand(12, 22), scale: 6,
+            a: rand(0.04, 0.085),
+            vy: -(H / travel),
+            sway: rand(8, 18), swayPhase: rand(0, Math.PI * 2), swaySpeed: rand(0.015, 0.04),
+            par: 1.2, sprite: s,
+            flickPhase: rand(0, Math.PI * 2), flickSpeed: rand(0.15, 0.3), flickAmt: rand(0.15, 0.3),
         };
     }
 
@@ -87,6 +110,20 @@
         far = Array.from({ length: 16 }, () => makeDust('far'));
         mid = Array.from({ length: 13 }, () => makeDust('mid'));
         embers = Array.from({ length: 7 }, makeEmber);
+        bokeh = Array.from({ length: 3 }, makeBokeh);
+    }
+
+    function buildGradients() {
+        // Warm pool sits slightly below centre, as if rising from candles off-frame.
+        const cx = W / 2, cy = H * 0.52, pr = Math.max(W, H) * 0.62;
+        poolGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pr);
+        poolGrad.addColorStop(0, 'rgba(232,180,143,0.11)');
+        poolGrad.addColorStop(0.5, 'rgba(232,180,143,0.04)');
+        poolGrad.addColorStop(1, 'rgba(232,180,143,0)');
+        const vr = Math.max(W, H) * 0.78;
+        vignGrad = ctx.createRadialGradient(W / 2, H / 2, vr * 0.45, W / 2, H / 2, vr);
+        vignGrad.addColorStop(0, 'rgba(8,4,12,0)');
+        vignGrad.addColorStop(1, 'rgba(8,4,12,0.42)');
     }
 
     function resize() {
@@ -99,13 +136,16 @@
         canvas.height = Math.floor(H * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         if (!far.length) build();
+        buildGradients();
     }
 
     function step(p, dt, t) {
         p.y += p.vy * dt;
         p.swayPhase += p.swaySpeed * dt;
-        if (p.y < -p.r - 4) {                  // respawn at the bottom, re-randomized
-            p.y = H + p.r + 4;
+        if (p.flickSpeed) p.flickPhase += p.flickSpeed * dt;
+        const dr = p.r * (p.scale || 5) / 2;   // respawn by the soft draw radius
+        if (p.y < -dr) {                       // respawn at the bottom, re-randomized
+            p.y = H + dr;
             p.x = rand(0, W);
         }
     }
@@ -113,22 +153,38 @@
     function drawParticle(p, t) {
         const x = p.x + Math.sin(p.swayPhase) * p.sway + offX * p.par;
         const y = p.y + offY * p.par;
-        ctx.globalAlpha = p.a;
-        const d = p.r * 5; // sprite draw diameter (soft halo wider than core)
+        let a = p.a;
+        if (p.flickSpeed) a *= 1 + Math.sin(p.flickPhase) * p.flickAmt; // candle flicker
+        ctx.globalAlpha = a;
+        const d = p.r * (p.scale || 5); // sprite draw diameter (soft halo wider than core)
         ctx.drawImage(p.sprite, x - d / 2, y - d / 2, d, d);
     }
 
     function renderAll(t, dt) {
         ctx.clearRect(0, 0, W, H);
-        ctx.globalCompositeOperation = 'lighter'; // additive glow over the dusk
         // ease pointer offset
         offX += ((pointerX - 0.5) * 2 * MAX_OFFSET - offX) * 0.05;
         offY += ((pointerY - 0.5) * 2 * MAX_OFFSET - offY) * 0.05;
+
+        ctx.globalCompositeOperation = 'lighter'; // additive glow over the dusk
+        // Warm candle pool, breathing slowly underneath the motes.
+        if (poolGrad) {
+            ctx.globalAlpha = 0.75 + 0.25 * Math.sin(t * 0.5);
+            ctx.fillStyle = poolGrad;
+            ctx.fillRect(0, 0, W, H);
+        }
+        for (const p of bokeh) { step(p, dt, t); drawParticle(p, t); }
         for (const p of far) { step(p, dt, t); drawParticle(p, t); }
         for (const p of mid) { step(p, dt, t); drawParticle(p, t); }
         for (const p of embers) { step(p, dt, t); drawParticle(p, t); }
+
+        // Edge vignette — darken the corners so the eye pools toward the warm centre.
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
+        if (vignGrad) {
+            ctx.fillStyle = vignGrad;
+            ctx.fillRect(0, 0, W, H);
+        }
     }
 
     function frame(now) {

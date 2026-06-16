@@ -157,6 +157,57 @@ body {
     backdrop-filter: blur(8px);
 }
 
+/* =========================================================
+   Move 3 — the letter: a handwritten greeting and a typed body that precede
+   the question, then the question + controls fade in once typing completes.
+   ========================================================= */
+.letter-greeting {
+    font-family: var(--font-script);
+    font-size: clamp(1.5rem, 4.5vw, 2rem);
+    font-weight: 700;
+    color: var(--rose-soft);
+    margin-bottom: var(--space-2);
+    text-shadow: 0 0 8px rgba(255, 143, 163, 0.3);
+    opacity: 0;
+    transition: opacity var(--dur-slow) var(--ease-out);
+}
+.letter-greeting.show { opacity: 1; }
+.letter-greeting:empty { display: none; }
+
+.letter-body {
+    font-family: var(--font-script);
+    font-size: clamp(1.25rem, 3.6vw, 1.55rem);
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin-bottom: var(--space-3);
+    white-space: pre-line;   /* render the line breaks between letter lines */
+    min-height: 1.5em;
+}
+.letter-body:empty { display: none; }
+
+/* Blinking caret while the letter types itself out. */
+.letter-body.typing::after {
+    content: '|';
+    color: var(--rose);
+    margin-left: 1px;
+    animation: caretBlink 1s steps(1) infinite;
+}
+@keyframes caretBlink { 50% { opacity: 0; } }
+
+/* Staged reveal: while the letter is being written the question + GIF + buttons
+   are held hidden; they settle in together once it finishes (letter-revealed).
+   Only applied when JS starts the sequence, so the controls are never stuck
+   hidden if scripting is unavailable. */
+#main-container.letter-active .stagger {
+    opacity: 0;
+    transform: translateY(10px);
+}
+#main-container.letter-revealed .stagger {
+    opacity: 1;
+    transform: none;
+    transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+
 /* Headline — editorial serif, written *to* someone */
 h1 {
     font-family: var(--font-display);
@@ -189,6 +240,18 @@ h1 {
 @keyframes contentReveal {
     from { opacity: 0; transform: translateY(18px) scale(0.985); }
     to { opacity: 1; transform: none; }
+}
+
+/* Screen swap — the outgoing card eases up and away before the next one settles
+   in (which re-runs contentReveal). Driven by swapScreens() in script.js. */
+.container.is-leaving {
+    animation: contentLeave var(--dur-med) var(--ease-in-out) both;
+    pointer-events: none;
+}
+
+@keyframes contentLeave {
+    from { opacity: 1; transform: none; }
+    to { opacity: 0; transform: translateY(-14px) scale(0.99); }
 }
 
 /* Temporary "photo card" plate behind the character. Tenor GIFs ship with

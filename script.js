@@ -1,3 +1,95 @@
+// =========================================================
+// Move 3 — PERSONALIZE HERE
+// 1. Set RECIPIENT_NAME to show a "Dear <name>," greeting (leave "" to hide it).
+// 2. Edit LETTER_LINES — each string is one line, typed out before the question.
+// 3. Drop seal-break.mp3 + chime.mp3 into a /sounds folder (see sounds/README.txt).
+// =========================================================
+const RECIPIENT_NAME = "Trouble"; // placeholder pet name; swap for a real name later
+const LETTER_LINES = [
+    "i know we've been annoying each other a lot lately.",
+    "every time i'm around you, i just want to pick a fight just to talk to you.",
+    "so here it goes…"
+];
+window.RECIPIENT_NAME = RECIPIENT_NAME; // read by analytics.js for the report card
+
+// ---- Sound effects: short one-shots that live in /sounds. Missing files fail
+// silently (play() rejects), so the site works fine until you add them. --------
+function makeSfx(src, vol) {
+    const a = new Audio(src);
+    a.volume = vol;
+    a.preload = 'auto';
+    return a;
+}
+const sealSfx = makeSfx('sounds/seal-break.wav', 0.5);
+const chimeSfx = makeSfx('sounds/chime.wav', 0.45);
+function playSfx(a) {
+    if (!a) return;
+    try { a.currentTime = 0; a.play().catch(() => {}); } catch (e) {}
+}
+
+// ---- Haptics: a subtle buzz on mobile. No-op where unsupported. --------------
+function buzz(pattern) {
+    if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} }
+}
+
+// ---- The letter: type the lines out, then reveal the question + controls. ----
+let letterStarted = false, letterFinished = false, letterSafety = 0;
+function finishLetter() {
+    if (letterFinished) return;
+    letterFinished = true;
+    if (letterSafety) clearTimeout(letterSafety);
+    const bodyEl = document.getElementById('letter-body');
+    const container = document.getElementById('main-container');
+    if (bodyEl) {
+        bodyEl.textContent = LETTER_LINES.join('\n');
+        bodyEl.classList.remove('typing');
+    }
+    if (container) container.classList.add('letter-revealed');
+}
+function startLetterSequence() {
+    if (letterStarted) return;
+    letterStarted = true;
+
+    const greetEl = document.getElementById('letter-greeting');
+    const bodyEl = document.getElementById('letter-body');
+    const container = document.getElementById('main-container');
+    if (!bodyEl || !container) return;
+
+    if (greetEl && RECIPIENT_NAME) greetEl.textContent = `Dear ${RECIPIENT_NAME},`;
+
+    const fullText = LETTER_LINES.join('\n');
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Reduced motion (or no letter): show everything at once, controls stay visible.
+    if (reduce || !fullText) {
+        if (greetEl) greetEl.classList.add('show');
+        bodyEl.textContent = fullText;
+        return;
+    }
+
+    container.classList.add('letter-active');           // hold the question hidden
+    requestAnimationFrame(() => { if (greetEl) greetEl.classList.add('show'); });
+
+    bodyEl.classList.add('typing');
+    let i = 0;
+    const typeNext = () => {
+        bodyEl.textContent = fullText.slice(0, i);
+        if (i >= fullText.length) { finishLetter(); return; }
+        const ch = fullText[i];
+        i++;
+        // Natural cadence: pause at line breaks and sentence punctuation.
+        let delay = 34;
+        if (ch === '\n') delay = 340;
+        else if (ch === '.' || ch === '…') delay = 200;
+        else if (ch === ',') delay = 140;
+        setTimeout(typeNext, delay);
+    };
+    setTimeout(typeNext, 600); // let the card settle before writing begins
+
+    // Safety: guarantee the controls appear even if something stalls the typing.
+    letterSafety = setTimeout(finishLetter, 600 + fullText.length * 90 + 2500);
+}
+
 // Smoothly resume state if loaded from Safari/Mobile Back-Forward Cache
 window.addEventListener('pageshow', function (event) {
     if (event.persisted) {
@@ -13,7 +105,9 @@ window.addEventListener('popstate', (event) => {
     const hash = window.location.hash;
 
     if (hash === '#yes') {
-        // She pressed back from the final selection screen, back to the options screen
+        // She pressed back from the final selection screen to the options screen.
+        // Both are the SAME yes-container (only the menu/message differ), so there's
+        // no card swap to animate — just make sure it's the visible screen.
         document.getElementById('main-container').style.display = 'none';
         document.getElementById('yes-container').style.display = 'block';
 
@@ -26,12 +120,35 @@ window.addEventListener('popstate', (event) => {
 
     } else if (hash === '' || hash === '#') {
         // She pressed back from the options screen, all the way to the first page
-        document.getElementById('yes-container').style.display = 'none';
-        document.getElementById('main-container').style.display = 'block';
+        swapScreens(
+            document.getElementById('yes-container'),
+            document.getElementById('main-container')
+        );
         music.currentTime = 26; // reset music to verse
         if (musicPlaying) music.play().catch(() => { });
     }
 });
+
+// Cross-fade between the two full-screen cards: ease the current one out, then
+// reveal the next (its #id selector re-runs the contentReveal entrance). Honours
+// reduced motion with an instant swap, and is guarded against double-firing.
+function swapScreens(outEl, inEl, onShown) {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let done = false;
+    const finish = () => {
+        if (done) return;
+        done = true;
+        outEl.removeEventListener('animationend', finish);
+        outEl.classList.remove('is-leaving');
+        outEl.style.display = 'none';
+        inEl.style.display = 'block';
+        if (typeof onShown === 'function') onShown();
+    };
+    if (reduce) { finish(); return; }
+    outEl.classList.add('is-leaving');
+    outEl.addEventListener('animationend', finish);
+    setTimeout(finish, 600); // fallback if animationend is missed
+}
 
 const gifStages = [
     "https://media.tenor.com/EBV7OT7ACfwAAAAj/u-u-qua-qua-u-quaa.gif",    // 0 normal
@@ -199,6 +316,11 @@ window.addEventListener('pagehide', () => {
 // blocked. Split out so the 3D envelope (P4) can run these on tap and defer the
 // overlay hide until its open animation finishes.
 function primeExperience() {
+    // A soft seal-break as the envelope opens (within the user gesture, so it's
+    // allowed to play). No-op until sounds/seal-break.mp3 exists.
+    playSfx(sealSfx);
+    buzz(20);
+
     // Ensure background music is loaded (already set on DOMContentLoaded) and start at promised position
     music.currentTime = 26;
     music.muted = false;
@@ -217,6 +339,8 @@ function revealCard() {
     if (overlay) {
         overlay.classList.add('hidden');
     }
+    // Begin the letter once the card is uncovered (idempotent).
+    startLetterSequence();
 }
 
 // Unchanged behaviour: the inline onclick + reduced-motion/fallback path.
@@ -252,15 +376,22 @@ function handleYesClick() {
         return
     }
 
-    // Switch to YES view within the same page
-    document.getElementById('main-container').style.display = 'none';
-    document.getElementById('yes-container').style.display = 'block';
+    // Cross-fade from the question card to the YES view within the same page.
+    // Confetti blooms as the YES screen settles in, not during the fade-out.
+    swapScreens(
+        document.getElementById('main-container'),
+        document.getElementById('yes-container'),
+        launchConfetti
+    );
+
+    // A warm chime + celebratory buzz on the big yes.
+    if (musicPlaying) playSfx(chimeSfx);
+    buzz([30, 40, 60]);
 
     // Push state for back button handling
     history.pushState({ view: 'yes' }, '', '#yes');
 
-    // Play confetti and jump music to finale
-    launchConfetti();
+    // Jump music to finale
     music.currentTime = 67; // finale at 1:07
     if (!musicPlaying) toggleMusic();
 }
@@ -275,6 +406,7 @@ function showTeaseMessage(msg) {
 
 function handleNoClick() {
     noClickCount++
+    buzz(18) // light tap feedback on each dodge
 
     // Cycle through guilt-trip messages
     const msgIndex = Math.min(noClickCount, noMessages.length - 1)
@@ -443,6 +575,7 @@ function launchConfetti() {
 function selectFood(choice) {
     const menu = document.getElementById('options-menu');
     const msg = document.getElementById('final-msg');
+    buzz(25)
 
     // Trigger explicit report via our analytics module
     if (typeof sendFinalReport === 'function') {

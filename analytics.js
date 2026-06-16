@@ -26,7 +26,8 @@ function sendFinalReport(choice, noClickCount, yesTeasedCount) {
                 choice,
                 noClickCount,
                 yesTeasedCount,
-                sessionStartTime
+                sessionStartTime,
+                recipientName: (window.RECIPIENT_NAME || '')
             }
         })
     }).catch(() => { /* Silent catch */ });
