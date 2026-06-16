@@ -19,9 +19,10 @@ window.addEventListener('popstate', (event) => {
 
         // Restore the options menu
         document.getElementById('options-menu').style.display = 'flex';
-        document.getElementById('final-msg').innerHTML = 'Now the most important question... What are we gonna do afterall?';
-        document.getElementById('final-msg').style.color = '#e91e8c'; // Original CSS color
-        document.getElementById('final-msg').style.textShadow = 'none';
+        const fm = document.getElementById('final-msg');
+        fm.innerHTML = 'Now the most important question... What are we gonna do afterall?';
+        // Revert to the default (token) message colour by dropping the success class.
+        fm.classList.remove('is-confirmed');
 
     } else if (hash === '' || hash === '#') {
         // She pressed back from the options screen, all the way to the first page
@@ -80,6 +81,64 @@ const noBtn = document.getElementById('no-btn');
 const music = document.getElementById('bg-music');
 
 music.volume = 0.3;
+
+// --- Design-token palette: single source of truth for JS-driven colours so
+// nothing hardcodes a rogue green/pink. Reads the CSS custom properties. ---
+function palette() {
+    const s = getComputedStyle(document.documentElement);
+    const v = (n, fallback) => (s.getPropertyValue(n).trim() || fallback);
+    return {
+        rose: v('--rose', '#ff8fa3'),
+        roseDeep: v('--rose-deep', '#e0607e'),
+        roseSoft: v('--rose-soft', '#ffb3c1'),
+        gold: v('--gold', '#e8b48f'),
+        mint: v('--mint', '#2fd27d'),
+        white: '#ffffff',
+    };
+}
+
+// --- TASK 1: Yes-button growth, bounded to the card ---
+// Asymptotic growth — each call closes a fraction of the REMAINING headroom, so
+// the button keeps growing but slows smoothly as it nears the cap (no abrupt
+// stop). A measured clamp then guarantees it never exceeds the card width.
+let yesGrow = 0;
+let yesBase = null;
+function growYesButton(step) {
+    if (!yesBase) {
+        const cs = getComputedStyle(yesBtn);
+        yesBase = { font: parseFloat(cs.fontSize), padY: parseFloat(cs.paddingTop), padX: parseFloat(cs.paddingLeft) };
+    }
+    yesGrow = yesGrow + (1 - yesGrow) * step; // approaches but never reaches 1
+
+    const card = yesBtn.closest('.container') || document.getElementById('main-container');
+    const ccs = getComputedStyle(card);
+    const innerW = card.clientWidth - parseFloat(ccs.paddingLeft) - parseFloat(ccs.paddingRight);
+    const small = window.innerWidth < 600;
+
+    // Caps scale with the card so the button stays inside the composition.
+    const maxFont = Math.min(small ? 56 : 96, innerW * 0.17);
+    const maxPadX = Math.min(small ? 54 : 110, innerW * 0.11);
+    const maxPadY = small ? 34 : 60;
+
+    const font = yesBase.font + (maxFont - yesBase.font) * yesGrow;
+    const padX = yesBase.padX + (maxPadX - yesBase.padX) * yesGrow;
+    const padY = yesBase.padY + (maxPadY - yesBase.padY) * yesGrow;
+    yesBtn.style.fontSize = font + 'px';
+    yesBtn.style.padding = padY + 'px ' + padX + 'px';
+
+    // Hard guarantee: never wider than the card content box.
+    const maxW = innerW * 0.92;
+    if (yesBtn.offsetWidth > maxW) {
+        const k = maxW / yesBtn.offsetWidth;
+        yesBtn.style.fontSize = (font * k) + 'px';
+        yesBtn.style.padding = (padY * k) + 'px ' + (padX * k) + 'px';
+    }
+
+    // Climax glow once it is dominant and we're in the runaway endgame.
+    if (runawayEnabled && yesGrow > 0.85) {
+        yesBtn.classList.add('yes-glow-active');
+    }
+}
 
 // Cache for fetched audio blobs
 const audioCache = new Map();
@@ -221,16 +280,8 @@ function handleNoClick() {
     const msgIndex = Math.min(noClickCount, noMessages.length - 1)
     noBtn.textContent = noMessages[msgIndex]
 
-    // Grow the Yes button bigger each time
-    const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize)
-    const sizeMultiplier = window.innerWidth < 600 ? 1.15 : 1.35;
-    const maxFontSize = window.innerWidth < 600 ? 60 : 100;
-    yesBtn.style.fontSize = `${Math.min(currentSize * sizeMultiplier, maxFontSize)}px`;
-    const maxPadYNo = window.innerWidth < 600 ? 30 : 60;
-    const maxPadXNo = window.innerWidth < 600 ? 60 : 120;
-    const padY = Math.min(18 + noClickCount * 5, maxPadYNo);
-    const padX = Math.min(45 + noClickCount * 10, maxPadXNo);
-    yesBtn.style.padding = `${padY}px ${padX}px`;
+    // Grow the Yes button bigger each time — bounded to the card (TASK 1).
+    growYesButton(0.34);
 
     // Shrink No button to contrast
     if (noClickCount >= 2) {
@@ -266,13 +317,8 @@ async function loadGif(url) {
   }
 }
 
-// Set initial GIF on page load using the first stage URL
-document.addEventListener('DOMContentLoaded', async () => {
-  if (gifStages.length > 0) {
-    const firstUrl = await loadGif(gifStages[0]);
-    catGif.src = firstUrl;
-  }
-});
+// (The first-stage GIF is set in the DOMContentLoaded handler above, alongside
+// the audio load — no duplicate initialiser needed here.)
 
 // Updated swapGif to use async loading and caching
 async function swapGif(src) {
@@ -291,24 +337,8 @@ function enableRunaway() {
 }
 
 function runAway() {
-    // Grow YES button every time they try to hover NO!
-    const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
-    const sizeMultiplier = window.innerWidth < 600 ? 1.05 : 1.15;
-    const maxFontSize = window.innerWidth < 600 ? 70 : 120;
-    const newSize = Math.min(currentSize * sizeMultiplier, maxFontSize);
-    yesBtn.style.fontSize = `${newSize}px`;
-
-    const padY = parseFloat(window.getComputedStyle(yesBtn).paddingTop) || 18;
-    const padX = parseFloat(window.getComputedStyle(yesBtn).paddingLeft) || 45;
-    const maxPadYRun = window.innerWidth < 600 ? 40 : 80;
-    const maxPadXRun = window.innerWidth < 600 ? 70 : 200;
-    const newPadY = Math.min(padY + 4, maxPadYRun);
-    const newPadX = Math.min(padX + 8, maxPadXRun);
-    yesBtn.style.padding = `${newPadY}px ${newPadX}px`;
-
-    if (newSize >= maxFontSize && newPadY >= maxPadYRun && newPadX >= maxPadXRun) {
-        yesBtn.classList.add('yes-glow-active');
-    }
+    // Grow YES every time they try to hover NO — bounded to the card (TASK 1).
+    growYesButton(0.16);
 
     const margin = 20
     const btnW = noBtn.offsetWidth
@@ -369,8 +399,9 @@ document.addEventListener('keydown', function (e) {
 }, { passive: false });
 
 function launchConfetti() {
-    // Palette-matched, romantic rather than carnival.
-    const colors = ['#ff8fa3', '#e0607e', '#ffb3c1', '#e8b48f', '#ffffff', '#2fd27d'];
+    // Palette-matched, romantic rather than carnival — sourced from design tokens.
+    const p = palette();
+    const colors = [p.rose, p.roseDeep, p.roseSoft, p.gold, p.white, p.mint];
     // Calm physics: softer launch, real gravity, gentle drift, larger slow petals.
     const base = { colors, gravity: 0.8, scalar: 1.1, drift: 0.4, decay: 0.92, ticks: 260 };
 
@@ -428,7 +459,7 @@ function selectFood(choice) {
         decay: 0.92,
         ticks: 240,
         origin: { y: 0.62 },
-        colors: ['#2fd27d', '#ff8fa3', '#ffb3c1', '#e8b48f', '#ffffff']
+        colors: (() => { const p = palette(); return [p.mint, p.rose, p.roseSoft, p.gold, p.white]; })()
     });
 
     // Push new state so pressing "back" will return to the options page
@@ -436,6 +467,6 @@ function selectFood(choice) {
 
     menu.style.display = 'none';
     msg.innerHTML = `Awesome! Get ready for <strong>${choice}</strong>. Can't wait! ❤️`;
-    msg.style.color = '#00e676';
-    msg.style.textShadow = '0 0 10px rgba(0, 230, 118, 0.5)';
+    // Success colour comes from a token-driven class, not a hardcoded green.
+    msg.classList.add('is-confirmed');
 }

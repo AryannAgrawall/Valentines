@@ -70,8 +70,10 @@ body {
     background-color: var(--ink);
     font-family: var(--font-ui);
     color: var(--text);
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 100vh;   /* fallback for browsers without small-viewport units */
+    min-height: 100svh;  /* small viewport: content fits the always-visible area
+                            (no scroll when chrome is shown) and doesn't re-center
+                            when the address bar collapses (no jump, unlike dvh) */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -89,6 +91,17 @@ body {
         /* edge vignette to anchor the composition on wide screens */
         radial-gradient(circle at 50% 50%, transparent 52%, rgba(8, 4, 12, 0.55) 100%);
     background-attachment: fixed;
+}
+
+/* Luxury atmosphere layer (canvas 2D) — sits behind everything, never
+   interactive. Created and driven by atmosphere.js. */
+#atmosphere {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
 }
 
 /* Floating hearts background (P3 replaces with a WebGL field) */
@@ -374,6 +387,12 @@ h1 {
     text-shadow: 0 1px 3px rgba(10, 6, 16, 0.7), 0 0 10px rgba(10, 6, 16, 0.5);
     margin-top: var(--space-3);
     animation: fadeIn 1s ease 0.5s both;
+}
+
+/* Success/confirmation state — token-driven, no hardcoded green. */
+.yes-message.is-confirmed {
+    color: var(--mint);
+    text-shadow: 0 0 12px rgba(47, 210, 125, 0.45);
 }
 
 @keyframes fadeIn {
@@ -680,49 +699,34 @@ html.env-3d #surprise-overlay.env-ready #open-surprise-btn span {
     }
 }
 
-/* Short / landscape viewports: trim heights aggressively so the primary CTA
-   (Yes / No, and the date tickets) stays above the fold where possible.
-   Placed after the min-width block so it wins on wide-but-short screens. */
-@media (max-height: 600px) {
+/* Short, wide screens (common laptops ~1280x720 / 1366x768): the large-screen
+   sizes above are too tall and force scrolling — trim so the card fits. */
+@media (min-width: 900px) and (max-height: 820px) {
     .container {
-        padding: 16px 24px;
+        padding: 30px 56px;
     }
 
     h1 {
-        font-size: 1.5rem;
-        margin-bottom: var(--space-1);
+        font-size: 2.2rem;
+        margin-bottom: var(--space-2);
     }
 
     .gif-container {
-        margin: var(--space-1) auto;
-        padding: 8px;
+        margin: var(--space-2) auto;
     }
 
-    #cat-gif,
+    #cat-gif {
+        width: 168px;
+        height: 168px;
+    }
+
     .yes-container #cat-gif {
-        width: 104px;
-        height: 104px;
-    }
-
-    .yes-container h1.yes-title {
-        font-size: 1.6rem;
-    }
-
-    .yes-message {
-        font-size: 1.25rem;
-        margin-top: var(--space-1);
+        width: 188px;
+        height: 188px;
     }
 
     .buttons {
-        margin-top: var(--space-2);
-    }
-
-    .options-menu {
-        margin-top: var(--space-2);
-    }
-
-    #tease-toast {
-        margin-top: var(--space-1);
+        margin-top: var(--space-3);
     }
 }
 
@@ -791,5 +795,88 @@ html.env-3d #surprise-overlay.env-ready #open-surprise-btn span {
 
     #open-surprise-btn:hover {
         transform: scale(0.9) translateY(-5px);
+    }
+}
+
+/* Short / landscape viewports: trim heights aggressively so the CTA (and the
+   date tickets) fit without scrolling. Placed AFTER the width queries so height
+   wins on screens that are both narrow and short (e.g. 320x568) and so content
+   scales down rather than introducing scroll. */
+@media (max-height: 600px) {
+    .container {
+        padding: 14px 22px;
+    }
+
+    h1 {
+        font-size: 1.45rem;
+        margin-bottom: var(--space-1);
+    }
+
+    .gif-container {
+        margin: var(--space-1) auto;
+        padding: 7px;
+    }
+
+    #cat-gif,
+    .yes-container #cat-gif {
+        width: 92px;
+        height: 92px;
+    }
+
+    .yes-container h1.yes-title {
+        font-size: 1.45rem;
+    }
+
+    .yes-message {
+        font-size: 1.05rem;
+        margin-top: var(--space-1);
+    }
+
+    .buttons {
+        margin-top: var(--space-2);
+    }
+
+    .options-menu {
+        margin-top: var(--space-1);
+        gap: 8px;
+    }
+
+    .food-btn {
+        padding: 9px 16px;
+        font-size: 0.9rem;
+    }
+
+    #tease-toast {
+        margin-top: var(--space-1);
+    }
+}
+
+/* Ultra-short (landscape phones, ~≤480px tall): squeeze further still. */
+@media (max-height: 480px) {
+    .container {
+        padding: 10px 18px;
+    }
+
+    h1 {
+        font-size: 1.3rem;
+    }
+
+    #cat-gif,
+    .yes-container #cat-gif {
+        width: 74px;
+        height: 74px;
+    }
+
+    .yes-container h1.yes-title {
+        font-size: 1.25rem;
+    }
+
+    .yes-message {
+        font-size: 0.98rem;
+    }
+
+    .food-btn {
+        padding: 7px 14px;
+        font-size: 0.86rem;
     }
 }

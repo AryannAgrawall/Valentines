@@ -24,6 +24,8 @@ const prefersReduced =
 
 let renderer, scene, camera, timer, envelope, keyLight, letterTex;
 let aborted = false;
+let baseDistance = 6;   // camera Z that frames the envelope for the current aspect
+let resizeRaf = 0;
 let raf = 0;
 let tl = null;
 let safetyTimer = 0;
@@ -32,6 +34,22 @@ let hasBegun = false;
 let finished = false;
 let disposed = false;
 const isSmall = window.innerWidth < 700;
+const DOLLY_IN = 0.86;  // fraction of baseDistance the camera draws in to on open
+
+// Aspect-aware camera distance: fit the envelope (incl. its open-state bounds)
+// with breathing room. Portrait gets more side margin so it never fills/crops
+// the narrow width; wide screens sit fuller. Computed for the CLOSEST (dollied)
+// camera position so the climax frame never clips.
+function fitCameraDistance() {
+    const aspect = window.innerWidth / window.innerHeight;
+    const vt = Math.tan((45 * Math.PI / 180) / 2); // tan(half vertical FOV)
+    const fitW = 3.4, fitH = 3.6;                  // bounds incl. open flap + risen letter
+    const fillW = aspect < 1 ? 0.80 : 0.86;        // looser on portrait → breathing room
+    const fillH = 0.86;
+    const dW = (fitW / fillW) / (2 * DOLLY_IN * vt * aspect);
+    const dH = (fitH / fillH) / (2 * DOLLY_IN * vt);
+    return Math.max(dW, dH);
+}
 
 function webglSupported() {
     try {
@@ -157,7 +175,8 @@ function init() {
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-    camera.position.set(0, 0.4, 6);
+    baseDistance = fitCameraDistance();
+    camera.position.set(0, 0.4, baseDistance);
     camera.lookAt(0, 0, 0);
     timer = new THREE.Timer();
 
@@ -278,7 +297,7 @@ function init() {
       .to(letter.rotation, { x: 0, duration: 0.75, ease: 'power2.out' }, 0.85)
       .to(letter.scale, { y: 1, duration: 0.75, ease: 'power2.out' }, 0.85)
       // camera draws in
-      .to(camera.position, { z: 4.7, duration: 0.55, ease: 'power2.inOut' }, 1.35);
+      .to(camera.position, { z: baseDistance * DOLLY_IN, duration: 0.55, ease: 'power2.inOut' }, 1.35);
 
     btn.onclick = null;                          // detach inline openSurprise()
     btn.addEventListener('click', beginReveal);  // pointer + keyboard (button)
@@ -294,11 +313,17 @@ function init() {
 }
 
 function onResize() {
-    if (!renderer || disposed) return;
-    const w = window.innerWidth, h = window.innerHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    if (!renderer || disposed || resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => {       // coalesce resize bursts into one update
+        resizeRaf = 0;
+        if (!renderer || disposed) return;
+        const w = window.innerWidth, h = window.innerHeight;
+        camera.aspect = w / h;
+        baseDistance = fitCameraDistance();
+        if (!hasBegun) camera.position.z = baseDistance; // re-frame only before the open begins
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    });
 }
 
 function renderLoop() {
@@ -348,6 +373,7 @@ function dispose() {
     if (disposed) return;
     disposed = true;
     cancelAnimationFrame(raf);
+    if (resizeRaf) cancelAnimationFrame(resizeRaf);
     clearTimeout(safetyTimer);
     clearTimeout(disposeTimer);
     if (tl) { tl.kill(); tl = null; }
