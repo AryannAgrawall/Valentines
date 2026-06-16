@@ -32,6 +32,26 @@ function buzz(pattern) {
     if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} }
 }
 
+// ---- Tactile press feedback: a quick scale/glow on every button press. This
+// is the visual stand-in for haptics on iOS (no web vibration) and for sound
+// when the phone is on silent. Pointer events cover mouse + touch + pen. -------
+function wireTactile() {
+    const press = e => e.currentTarget.classList.add('is-pressed');
+    const release = e => e.currentTarget.classList.remove('is-pressed');
+    document.querySelectorAll('#yes-btn, #no-btn, .food-btn, #music-toggle').forEach(b => {
+        b.classList.add('tactile');
+        b.addEventListener('pointerdown', press);
+        b.addEventListener('pointerup', release);
+        b.addEventListener('pointerleave', release);
+        b.addEventListener('pointercancel', release);
+    });
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireTactile);
+} else {
+    wireTactile();
+}
+
 // ---- The letter: type the lines out, then reveal the question + controls. ----
 let letterStarted = false, letterFinished = false, letterSafety = 0;
 function finishLetter() {
@@ -73,6 +93,7 @@ function startLetterSequence() {
     bodyEl.classList.add('typing');
     let i = 0;
     const typeNext = () => {
+        if (letterFinished) return;             // safety net already revealed everything
         bodyEl.textContent = fullText.slice(0, i);
         if (i >= fullText.length) { finishLetter(); return; }
         const ch = fullText[i];

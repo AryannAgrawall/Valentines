@@ -500,6 +500,28 @@ h1 {
     transform: translateY(-3px) scale(1.04);
 }
 
+/* Tactile press feedback — every tap gets an instant visual response. This
+   matters most on iOS, which has no web haptics and (on silent) may play no
+   sound: the press animation stands in for the missing buzz. JS toggles
+   .is-pressed on pointer down/up (see wireTactile in script.js). Placed after
+   the :hover rules so it wins on equal specificity when both apply. */
+.tactile {
+    -webkit-tap-highlight-color: transparent; /* drop the grey iOS flash */
+    touch-action: manipulation;               /* snappier taps, no double-tap zoom */
+}
+#no-btn.is-pressed,
+.food-btn.is-pressed,
+#music-toggle.is-pressed {
+    transform: scale(0.93);
+    filter: brightness(1.1);
+}
+/* Yes already dips on :active; its press deepens the glow rather than fighting
+   the hover transform. */
+#yes-btn.is-pressed {
+    filter: brightness(1.12);
+    box-shadow: 0 6px 22px rgba(47, 210, 125, 0.7), 0 0 40px rgba(47, 210, 125, 0.9);
+}
+
 /* =========================================================
    Surprise overlay — flat "envelope" (P4 replaces with 3D)
    ========================================================= */
